@@ -319,11 +319,13 @@ runs:
         sed -i 's!block=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;!block=auto;!g' AnyKernel3/anykernel.sh
         sed -i 's/do.devicecheck=1/do.devicecheck=0/g' AnyKernel3/anykernel.sh
         sed -i 's/is_slot_device=0;/is_slot_device=auto;/g' AnyKernel3/anykernel.sh
-        
+        echo $(pwd)
         if [ -f ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/Image.*-dtb ]; then
            cp ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/Image.*-dtb AnyKernel3 -rv
-        else
+        elif [ -f ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/Image.* ]; then
            cp ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/Image.* AnyKernel3 -rv
+        else
+           cp ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/Image AnyKernel3 -rv
         fi
 
         test -f ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/dtbo.img && cp ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/dtbo.img AnyKernel3/
