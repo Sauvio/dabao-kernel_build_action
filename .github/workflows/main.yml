@@ -36,7 +36,7 @@ jobs:
 
         - os: ubuntu-20.04
           id: x64
-          
+
     needs: yaml-check
     runs-on: ${{ matrix.os }}
     permissions:
@@ -50,7 +50,7 @@ jobs:
     - name: Test CI
       uses: Sauvio/dabao-kernel_build_action@main
       with: 
-          kernel-url: git clone https://github.com/Sauvio/android_kernel_oneplus_sm8250.git
+          kernel-url: https://github.com/Sauvio/android_kernel_oneplus_sm8250.git
           kernel-dir: false
           branch: dev/build-kernel
           ccache: true
