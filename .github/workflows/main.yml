@@ -52,13 +52,14 @@ jobs:
       with: 
           kernel-url: https://github.com/Sauvio/android_kernel_oneplus_sm8250.git
           kernel-dir: false
-          branch: dev/build-kernel
+          branch: oneplus/SM8250_R_11.0
           config: vendor/kona-perf_defconfig
           arch: arm64
           aosp-gcc: true
           aosp-clang: true
           ksu: true
           ksu-version: main
+          anykernel3: true
           android-version: 11
           aosp-clang-version: r370808
           python-27: true
