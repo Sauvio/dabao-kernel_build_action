@@ -64,7 +64,7 @@ jobs:
           android-version: 11
           aosp-clang-version: r370808
           python-27: true
-          disable-lto: false
+          disable-lto: true
           overlayfs: true
           lxc: false
           lxc-patch: false
