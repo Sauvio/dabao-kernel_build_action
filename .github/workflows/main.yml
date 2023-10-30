@@ -48,19 +48,19 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Test CI
-      uses: dabao1955/kernel_build_action@main
+      uses: Sauvio/dabao-kernel_build_action@main
       with: 
-          kernel-url: https://github.com/AcmeUI-Devices/android_kernel_xiaomi_cas
-          kernel-dir: msm-4.19
-          branch: taffy
-          config: cas_defconfig
+          kernel-url: git clone https://github.com/Sauvio/android_kernel_oneplus_sm8250.git
+          kernel-dir: false
+          branch: dev/build-kernel
+          config: vendor/kona-perf_defconfig
           arch: arm64
           aosp-gcc: true
           aosp-clang: true
           ksu: true
           ksu-version: main
-          android-version: 12
-          aosp-clang-version: r383902
+          android-version: 11
+          aosp-clang-version: r370808
           python-27: true
           disable-lto: true
           overlayfs: true
