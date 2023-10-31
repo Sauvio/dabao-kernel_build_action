@@ -105,82 +105,83 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - id: cleanup
-      uses: rokibhasansagar/slimhub_actions@main
+    # - id: cleanup
+    #   uses: rokibhasansagar/slimhub_actions@main
       
-    - name: install package
-      shell: bash
-      run: sudo apt install -y binutils binutils-aarch64-linux-gnu binutils-arm-linux-gnueabi git ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python3
+    # - name: install package
+    #   shell: bash
+    #   run: sudo apt install -y binutils binutils-aarch64-linux-gnu binutils-arm-linux-gnueabi git ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python3
 
-    - name: download aosp-gcc
-      shell: bash
-      if: inputs.aosp-gcc == 'true'
-      run: |
-        if [ ${{ inputs.aosp-clang }} = true ]; then
-            mkdir -p -v $HOME/gcc-64
-            wget -q -O gcc-aarch64.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
-            tar -C $HOME/gcc-64 -zxf gcc-aarch64.tar.gz
-            mkdir -p -v $HOME/gcc-32
-            wget -q -O gcc-arm.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
-            tar -C $HOME/gcc-32 -zxf gcc-arm.tar.gz
-        else
-            git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/ --depth=1 -b android${{ inputs.android-version }}-release $HOME/gcc-64
-            git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/ --depth=1 -b android${{ inputs.android-version }}-release $HOME/gcc-32
-        fi
+    # - name: download aosp-gcc
+    #   shell: bash
+    #   if: inputs.aosp-gcc == 'true'
+    #   run: |
+    #     if [ ${{ inputs.aosp-clang }} = true ]; then
+    #         mkdir -p -v $HOME/gcc-64
+    #         wget -q -O gcc-aarch64.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
+    #         tar -C $HOME/gcc-64 -zxf gcc-aarch64.tar.gz
+    #         mkdir -p -v $HOME/gcc-32
+    #         wget -q -O gcc-arm.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
+    #         tar -C $HOME/gcc-32 -zxf gcc-arm.tar.gz
+    #     else
+    #         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/ --depth=1 -b android${{ inputs.android-version }}-release $HOME/gcc-64
+    #         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/ --depth=1 -b android${{ inputs.android-version }}-release $HOME/gcc-32
+    #     fi
 
-    - name: download Android-NDK
-      if: inputs.android-ndk == 'true'
-      shell: bash
-      run: |
-        if [ ${{ inputs.aosp-gcc }} = false ]; then
-            echo
-            if [ ${{ inputs.android-ndk-x64 }} = false ]; then
-                wget -q -O android-ndk.zip https://dl.google.com/android/repository/android-ndk-${{ inputs.android-ndk-version }}-linux.zip
-                unzip -q -d $HOME android-ndk.zip
-            else
-                wget -q -O android-ndk.zip https://dl.google.com/android/repository/android-ndk-${{ inputs.android-ndk-version }}-linux-x86_64.zip
-                unzip -q -d $HOME android-ndk.zip
-            fi
-            echo
-        else
-            echo "Please disable aosp-gcc and aosp-clang."
-            exit 127
-        fi
+    # - name: download Android-NDK
+    #   if: inputs.android-ndk == 'true'
+    #   shell: bash
+    #   run: |
+    #     if [ ${{ inputs.aosp-gcc }} = false ]; then
+    #         echo
+    #         if [ ${{ inputs.android-ndk-x64 }} = false ]; then
+    #             wget -q -O android-ndk.zip https://dl.google.com/android/repository/android-ndk-${{ inputs.android-ndk-version }}-linux.zip
+    #             unzip -q -d $HOME android-ndk.zip
+    #         else
+    #             wget -q -O android-ndk.zip https://dl.google.com/android/repository/android-ndk-${{ inputs.android-ndk-version }}-linux-x86_64.zip
+    #             unzip -q -d $HOME android-ndk.zip
+    #         fi
+    #         echo
+    #     else
+    #         echo "Please disable aosp-gcc and aosp-clang."
+    #         exit 127
+    #     fi
         
-        export HOMES=$(pwd) 
-        export LLVMS=$HOME/android-ndk-${{ inputs.android-ndk-version }}/toolchains/llvm/prebuilt/linux-x86_64/bin
-        cd $LLVMS
-        for file in $(ls llvm-*); do
-        ln -s "$file" "aarch64-linux-android$(( ${{ inputs.android-version }} + 19 ))-${file#llvm-}"
-        done
-        cd $HOMES
+    #     export HOMES=$(pwd) 
+    #     export LLVMS=$HOME/android-ndk-${{ inputs.android-ndk-version }}/toolchains/llvm/prebuilt/linux-x86_64/bin
+    #     cd $LLVMS
+    #     for file in $(ls llvm-*); do
+    #     ln -s "$file" "aarch64-linux-android$(( ${{ inputs.android-version }} + 19 ))-${file#llvm-}"
+    #     done
+    #     cd $HOMES
 
 
-    - name: use python 2.7
-      if: inputs.python-27 == 'true'
-      run: |
-        sudo apt install -y -q python2.7 python2.7-minimal
-        sudo rm /bin/python
-        sudo ln -s /bin/python2.7 /bin/python
-        sudo ln -s /bin/python2.7 /bin/python2
-      shell: bash
+    # - name: use python 2.7
+    #   if: inputs.python-27 == 'true'
+    #   run: |
+    #     sudo apt install -y -q python2.7 python2.7-minimal
+    #     sudo rm /bin/python
+    #     sudo ln -s /bin/python2.7 /bin/python
+    #     sudo ln -s /bin/python2.7 /bin/python2
+    #   shell: bash
 
-    - name: download aosp clang
-      if: inputs.aosp-clang == 'true'
-      run: |
-        if [ ${{ inputs.aosp-gcc }} = true ]; then
-            mkdir $HOME/clang -p -v 
-            wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android${{ inputs.android-version }}-release/clang-${{ inputs.aosp-clang-version }}.tar.gz
-            tar -C $HOME/clang -zxf clang-${{ inputs.aosp-clang-version }}.tar.gz
-        else
-            echo "Please enable aosp-gcc."
-            exit 127
-        fi
-      shell: bash
+    # - name: download aosp clang
+    #   if: inputs.aosp-clang == 'true'
+    #   run: |
+    #     if [ ${{ inputs.aosp-gcc }} = true ]; then
+    #         mkdir $HOME/clang -p -v 
+    #         wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android${{ inputs.android-version }}-release/clang-${{ inputs.aosp-clang-version }}.tar.gz
+    #         tar -C $HOME/clang -zxf clang-${{ inputs.aosp-clang-version }}.tar.gz
+    #     else
+    #         echo "Please enable aosp-gcc."
+    #         exit 127
+    #     fi
+    #   shell: bash
 
     - name: pull kernel source from selected branch
       run: |
         git clone ${{ inputs.kernel-url }} -b "${{ inputs.branch }}" --depth=1 ${{ inputs.kernel-dir }}
+        git checkout 06d21b483ed3d719c8a08deb90ced593847dc469
       shell: bash
 
     - name: pull vendor source
