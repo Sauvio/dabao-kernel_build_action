@@ -347,10 +347,3 @@ runs:
       with:
         name: AnyKernel3-flasher
         path: AnyKernel3/*
-      
-posts:
-  using: 'composite'
-  steps:
-    - name: post
-      shell: bash
-      run:  bash $GITHUB_ACTION_PATH/post.sh
