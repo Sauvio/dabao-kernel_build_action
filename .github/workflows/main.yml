@@ -13,7 +13,7 @@ jobs:
     env:
       kernel-url: https://github.com/Sauvio/OPlus8T
       kernel-dir: kernel
-      branch: blu_spark-custom-11
+      branch: blu_spark-custom-11_r130
       config: blu_spark_defconfig
       arch: arm64
       aosp-gcc: false
