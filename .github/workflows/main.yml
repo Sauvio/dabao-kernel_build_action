@@ -106,6 +106,7 @@ jobs:
       - name: pull kernel source from selected branch
         run: |
           git clone ${{ env.kernel-url }} -b "${{ env.branch }}" --depth=1 ${{ env.kernel-dir }}
+          git checkout remote blu_spark-13-custom
           git checkout 06d21b483ed3d719c8a08deb90ced593847dc469
         shell: bash
   
