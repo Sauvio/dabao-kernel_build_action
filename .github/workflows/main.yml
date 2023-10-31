@@ -107,6 +107,7 @@ jobs:
         run: |
           git clone ${{ env.kernel-url }} -b "${{ env.branch }}" --depth=1 ${{ env.kernel-dir }}
           cd ${{ env.kernel-dir }}
+          git fetch --tags
           git checkout r130
           git show-branch
         shell: bash
