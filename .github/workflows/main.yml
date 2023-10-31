@@ -107,7 +107,8 @@ jobs:
         run: |
           git clone ${{ env.kernel-url }} -b "${{ env.branch }}" --depth=1 ${{ env.kernel-dir }}
           cd ${{ env.kernel-dir }}
-          git checkout 06d21b483ed3d719c8a08deb90ced593847dc469
+          git checkout r130
+          git show-branch
         shell: bash
   
       - name: pull vendor source
