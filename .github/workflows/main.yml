@@ -13,7 +13,7 @@ jobs:
     env:
       kernel-url: https://github.com/Sauvio/OPlus8T
       kernel-dir: kernel
-      branch: blu_spark-custom-11
+      branch: blu_spark-13-custom
       config: blu_spark_defconfig
       arch: arm64
       aosp-gcc: true
@@ -107,8 +107,6 @@ jobs:
         run: |
           git clone ${{ env.kernel-url }} -b "${{ env.branch }}" --depth=1 ${{ env.kernel-dir }}
           cd ${{ env.kernel-dir }}
-          echo $(pwd)
-          git checkout origin/blu_spark-13-custom
           git checkout 06d21b483ed3d719c8a08deb90ced593847dc469
         shell: bash
   
