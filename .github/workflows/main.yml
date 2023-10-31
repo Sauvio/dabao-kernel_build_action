@@ -98,8 +98,9 @@ jobs:
               wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android${{ env.android-version }}-release/clang-${{ env.aosp-clang-version }}.tar.gz
               tar -C $HOME/clang -zxf clang-${{ env.aosp-clang-version }}.tar.gz
           else
-              echo "Please enable aosp-gcc."
-              exit 127
+              mkdir $HOME/clang -p -v 
+              wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/4bb6424cb1615af408ae80871131f4da8c4ddadf/clang-r450784d.tar.gz
+              tar -C $HOME/clang -zxf clang-${{ env.aosp-clang-version }}.tar.gz
           fi
         shell: bash
   
