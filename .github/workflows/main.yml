@@ -25,6 +25,7 @@ jobs:
       aosp-clang-version: r450784d
       python-27: true
       disable-lto: true
+      kprobes: true
       overlayfs: true
       lxc: false
       lxc-patch: false
@@ -156,14 +157,23 @@ jobs:
                sed -i 's/CONFIG_THINLTO=y/CONFIG_THINLTO=n/' arch/${{ env.arch }}/configs/${{ env.config }} 
                echo "CONFIG_LTO_NONE=y" >> arch/${{ env.arch }}/configs/${{ env.config }}
           fi
-  
+      - name: enable kprobes
+        if: env.kprobes == 'true'
+        shell: bash
+        run: |
+          cd ${{ env.kernel-dir }}
+          echo "CONFIG_MODULES=y" >> arch/${{ env.arch }}/configs/${{ env.config }}
+          echo "CONFIG_KPROBES=y" >> arch/${{ env.arch }}/configs/${{ env.config }}
+          echo "CONFIG_HAVE_KPROBES=y" >> arch/${{ env.arch }}/configs/${{ env.config }}
+          echo "CONFIG_KPROBE_EVENTS=y" >> arch/${{ env.arch }}/configs/${{ env.config }}
+          
       - name: enable overlayfs
         if: env.overlayfs == 'true'
         shell: bash
         run: |
           cd ${{ env.kernel-dir }}
           grep -q "OVERLAY_FS" "arch/${{ env.arch }}/configs/${{ env.config }}" || echo "CONFIG_OVERLAY_FS=y" >> arch/${{ env.arch }}/configs/${{ env.config }}
-        
+          
       - name: enable kvm
         if: env.kvm == 'true'
         shell: bash
