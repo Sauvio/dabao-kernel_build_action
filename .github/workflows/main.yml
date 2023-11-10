@@ -13,7 +13,7 @@ jobs:
     env:
       kernel-url: https://github.com/Sauvio/OPlus8T
       kernel-dir: kernel
-      branch: blu_spark-custom-11_r130
+      branch: new-branch_r130
       config: blu_spark_defconfig
       arch: arm64
       aosp-gcc: false
@@ -25,7 +25,7 @@ jobs:
       aosp-clang-version: r450784d
       python-27: true
       disable-lto: true
-      kprobes: false
+      kprobes: true
       overlayfs: true
       lxc: false
       lxc-patch: false
