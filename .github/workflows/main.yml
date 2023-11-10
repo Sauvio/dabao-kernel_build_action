@@ -169,9 +169,9 @@ jobs:
         shell: bash
         run: |
           cd ${{ env.kernel-dir }}
-          sed -i '/CONFIG_KPROBES=y/d' >> arch/${{ env.arch }}/configs/${{ env.config }}
-          sed -i '/CONFIG_HAVE_KPROBES=y/d' >> arch/${{ env.arch }}/configs/${{ env.config }}
-          sed -i '/CONFIG_KPROBE_EVENTS=y/d' >> arch/${{ env.arch }}/configs/${{ env.config }}
+          sed -i '/CONFIG_KPROBES=y/d' arch/${{ env.arch }}/configs/${{ env.config }}
+          sed -i '/CONFIG_HAVE_KPROBES=y/d' arch/${{ env.arch }}/configs/${{ env.config }}
+          sed -i '/CONFIG_KPROBE_EVENTS=y/d' arch/${{ env.arch }}/configs/${{ env.config }}
       
       - name: enable overlayfs
         if: env.overlayfs == 'true'
