@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build Kernel by ${{ github.actor }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: github.event.repository.owner.id == github.event.sender.id
     env:
       kernel-url: https://github.com/Sauvio/OPlus8T
@@ -164,6 +164,15 @@ jobs:
           echo "CONFIG_HAVE_KPROBES=y" >> arch/${{ env.arch }}/configs/${{ env.config }}
           echo "CONFIG_KPROBE_EVENTS=y" >> arch/${{ env.arch }}/configs/${{ env.config }}
           
+      - name: disable kprobes
+        if: env.kprobes == 'false'
+        shell: bash
+        run: |
+          cd ${{ env.kernel-dir }}
+          sed -i '/CONFIG_KPROBES=y/d' >> arch/${{ env.arch }}/configs/${{ env.config }}
+          sed -i '/CONFIG_HAVE_KPROBES=y/d' >> arch/${{ env.arch }}/configs/${{ env.config }}
+          sed -i '/CONFIG_KPROBE_EVENTS=y/d' >> arch/${{ env.arch }}/configs/${{ env.config }}
+      
       - name: enable overlayfs
         if: env.overlayfs == 'true'
         shell: bash
