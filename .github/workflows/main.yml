@@ -29,10 +29,8 @@ jobs:
 
       - name: install package
         shell: bash
-        run: |
-          sudo apt-get install libncurses5-dev libncurses-dev libssl-dev device-tree-compiler bc cpio lib32ncurses5-dev lib32z1 build-essential binutils bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip gzip xz-utils zlib1g-dev git
-          sudo apt-get update
-          sudo apt install gcc
+        run: sudo apt-get install libncurses5-dev libncurses-dev libssl-dev device-tree-compiler bc cpio lib32ncurses5-dev lib32z1 build-essential binutils bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip gzip xz-utils zlib1g-dev git
+
 
       - name: use python 2.7
         if: env.python-27 == 'true'
@@ -59,6 +57,12 @@ jobs:
           else
             echo "Unknown compression format or unsupported file"
           fi
+          mkdir -p -v $HOME/gcc-64
+          wget -q -O gcc-aarch64.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
+          tar -C $HOME/gcc-64 -zxf gcc-aarch64.tar.gz
+          mkdir -p -v $HOME/gcc-32
+          wget -q -O gcc-arm.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
+          tar -C $HOME/gcc-32 -zxf gcc-arm.tar.gz
         shell: bash
 
       - name: pull kernel source from selected branch
@@ -109,8 +113,8 @@ jobs:
           export CLANG_PATH=$HOME/clang
           export PATH=$CLANG_PATH/bin:$PATH
           make -j$(nproc --all) \
-               CROSS_COMPILE=${CLANG_PATH}/bin/aarch64-linux-android- \
-               CROSS_COMPILE_COMPAT=${CLANG_PATH}/bin/arm-linux-gnueabi- \
+               CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- \
+               COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- \
                CLANG_TRIPLE=aarch64-linux-gnu- \
                CC=${CLANG_PATH}/bin/clang \
                ARCH=${{ env.arch }} \
@@ -126,8 +130,8 @@ jobs:
                ${{ env.config }}
           if [ ${{ env.ccache }} = true ]; then
               make -j$(nproc --all) \
-                   CROSS_COMPILE=${CLANG_PATH}/bin/aarch64-linux-android- \
-                   CROSS_COMPILE_COMPAT=${CLANG_PATH}/bin/arm-linux-gnueabi- \
+                   CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- \
+                   COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- \
                    CLANG_TRIPLE=aarch64-linux-gnu- \
                    CC="ccache ${CLANG_PATH}/bin/clang" \
                    ARCH=${{ env.arch }} \
@@ -143,8 +147,8 @@ jobs:
                    ${{ env.extra-cmd}}
           else
               make -j$(nproc --all) \
-                   CROSS_COMPILE=${CLANG_PATH}/bin/aarch64-linux-android- \
-                   CROSS_COMPILE_COMPAT=${CLANG_PATH}/bin/arm-linux-gnueabi- \
+                   CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- \
+                   COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi-
                    CLANG_TRIPLE=aarch64-linux-gnu- \
                    CC=${CLANG_PATH}/bin/clang \
                    ARCH=${{ env.arch }} \
