@@ -126,7 +126,7 @@ jobs:
                    CROSS_COMPILE=${CLANG_PATH}/bin/aarch64-linux-android- \
                    CROSS_COMPILE_COMPAT=${CLANG_PATH}/bin/arm-linux-gnueabi- \
                    CLANG_TRIPLE=aarch64-linux-gnu- \
-                   CC=${CLANG_PATH}/bin/clang \
+                   CC="ccache ${CLANG_PATH}/bin/clang" \
                    ARCH=${{ env.arch }} \
                    AR=${CLANG_PATH}/bin/llvm-ar \
                    NM=${CLANG_PATH}/bin/llvm-nm \
@@ -143,7 +143,7 @@ jobs:
                    CROSS_COMPILE=${CLANG_PATH}/bin/aarch64-linux-android- \
                    CROSS_COMPILE_COMPAT=${CLANG_PATH}/bin/arm-linux-gnueabi- \
                    CLANG_TRIPLE=aarch64-linux-gnu- \
-                   CC=ccahe ${CLANG_PATH}/bin/clang \
+                   CC=${CLANG_PATH}/bin/clang \
                    ARCH=${{ env.arch }} \
                    AR=${CLANG_PATH}/bin/llvm-ar \
                    NM=${CLANG_PATH}/bin/llvm-nm \
@@ -155,7 +155,6 @@ jobs:
                    LD=${CLANG_PATH}/bin/ld.lld \
                    O=out \
                    ${{ env.extra-cmd}}
-
           fi
         shell: bash
 
