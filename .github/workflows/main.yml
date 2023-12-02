@@ -4,7 +4,7 @@ on:
     branches: OPlus8T-OOS11-horizon
 
   workflow_dispatch:
-  
+
 jobs:
   build:
     name: Build Kernel by ${{ github.actor }}
@@ -23,7 +23,6 @@ jobs:
       python-27: true
       disable-lto: true
     steps:
-      - uses: actions/checkout@v3
       - id: cleanup
         uses: rokibhasansagar/slimhub_actions@main
 
@@ -40,13 +39,13 @@ jobs:
           sudo ln -s /bin/python2.7 /bin/python2
         shell: bash
 
-      -name: download custom clang
-       if: env.custom-clang == 'true'
-       run: |
-         mkdir $HOME/clang -p -v
-         wget -q ${{ env.custom-clang}} -O custom-clang.tar.gz
-         tar -C $HOME/clang -zxf custom-clang.tar.gz
-       shell: bash
+      - name: download custom clang
+        if: env.custom-clang == 'true'
+        run: |
+          mkdir $HOME/clang -p -v
+          wget -q ${{ env.custom-clang}} -O custom-clang.tar.gz
+          tar -C $HOME/clang -zxf custom-clang.tar.gz
+        shell: bash
 
       - name: pull kernel source from selected branch
         run: |
