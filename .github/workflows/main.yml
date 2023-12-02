@@ -17,7 +17,7 @@ jobs:
       config: kebab_defconfig
       arch: arm64
       custom-clang: true
-      clang-url: https://storage.xzr.moe/horizon-clang/Horizon-Clang-16.0.6.tar.xz
+      clang-url: https://storage.xzr.moe/horizon-clang/Horizon-Clang-17.0.6.tar.xz
       ksu: true
       ksu-version: v0.7.1
       anykernel3: true
@@ -118,6 +118,7 @@ jobs:
                OBJCOPY=${CLANG_PATH}/bin/llvm-objcopy \
                OBJDUMP=${CLANG_PATH}/bin/llvm-objdump \
                STRIP=${CLANG_PATH}/bin/llvm-strip \
+               LD=${CLANG_PATH}/bin/ld.lld \
                O=out \
                ${{ env.config }}
           if [ ${{ env.ccache }} = true ]; then
@@ -134,6 +135,7 @@ jobs:
                    OBJCOPY=${CLANG_PATH}/bin/llvm-objcopy \
                    OBJDUMP=${CLANG_PATH}/bin/llvm-objdump \
                    STRIP=${CLANG_PATH}/bin/llvm-strip \
+                   LD=${CLANG_PATH}/bin/ld.lld \
                    O=out \
                    ${{ env.extra-cmd}}
           else
@@ -150,6 +152,7 @@ jobs:
                    OBJCOPY=${CLANG_PATH}/bin/llvm-objcopy \
                    OBJDUMP=${CLANG_PATH}/bin/llvm-objdump \
                    STRIP=${CLANG_PATH}/bin/llvm-strip \
+                   LD=${CLANG_PATH}/bin/ld.lld \
                    O=out \
                    ${{ env.extra-cmd}}
           fi
