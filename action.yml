@@ -9,9 +9,6 @@ inputs:
   kernel-url:
     description: 'Kernel Source Url'
     required: true
-  depth:
-    required: false
-    default: 1
   vendor-url:
     description: 'Kernel Vendor Source Url'
     required: false
@@ -82,16 +79,6 @@ inputs:
   aosp-clang-version:
     required: false
     default: "r383902"
-  other-clang-url:
-    required: false
-    default: ''
-  other-clang:
-    description: 'Use clang from 3rd party.'
-    required: false
-    default: false
-  other-clang-branch:
-    required: false
-    default: main
   android-ndk:
     description: 'Use Android NDK to build kernrl (Experimental features)'
     required: false
@@ -118,6 +105,89 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - id: cleanup
+      uses: rokibhasansagar/slimhub_actions@main
+      
+    - name: install package
+      shell: bash
+      run: sudo apt install -y binutils binutils-aarch64-linux-gnu binutils-arm-linux-gnueabi git ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python3
+
+    - name: download aosp-gcc
+      shell: bash
+      if: inputs.aosp-gcc == 'true'
+      run: |
+        if [ ${{ inputs.aosp-clang }} = true ]; then
+            mkdir -p -v $HOME/gcc-64
+            wget -q -O gcc-aarch64.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
+            tar -C $HOME/gcc-64 -zxf gcc-aarch64.tar.gz
+            mkdir -p -v $HOME/gcc-32
+            wget -q -O gcc-arm.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
+            tar -C $HOME/gcc-32 -zxf gcc-arm.tar.gz
+        else
+            git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/ --depth=1 -b android${{ inputs.android-version }}-release $HOME/gcc-64
+            git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/ --depth=1 -b android${{ inputs.android-version }}-release $HOME/gcc-32
+        fi
+
+    - name: download Android-NDK
+      if: inputs.android-ndk == 'true'
+      shell: bash
+      run: |
+        if [ ${{ inputs.aosp-gcc }} = false ]; then
+            echo
+            if [ ${{ inputs.android-ndk-x64 }} = false ]; then
+                wget -q -O android-ndk.zip https://dl.google.com/android/repository/android-ndk-${{ inputs.android-ndk-version }}-linux.zip
+                unzip -q -d $HOME android-ndk.zip
+            else
+                wget -q -O android-ndk.zip https://dl.google.com/android/repository/android-ndk-${{ inputs.android-ndk-version }}-linux-x86_64.zip
+                unzip -q -d $HOME android-ndk.zip
+            fi
+            echo
+        else
+            echo "Please disable aosp-gcc and aosp-clang."
+            exit 127
+        fi
+        
+        export HOMES=$(pwd) 
+        export LLVMS=$HOME/android-ndk-${{ inputs.android-ndk-version }}/toolchains/llvm/prebuilt/linux-x86_64/bin
+        cd $LLVMS
+        for file in $(ls llvm-*); do
+        ln -s "$file" "aarch64-linux-android$(( ${{ inputs.android-version }} + 19 ))-${file#llvm-}"
+        done
+        cd $HOMES
+
+
+    - name: use python 2.7
+      if: inputs.python-27 == 'true'
+      run: |
+        sudo apt install -y -q python2.7 python2.7-minimal
+        sudo rm /bin/python
+        sudo ln -s /bin/python2.7 /bin/python
+        sudo ln -s /bin/python2.7 /bin/python2
+      shell: bash
+
+    - name: download aosp clang
+      if: inputs.aosp-clang == 'true'
+      run: |
+        if [ ${{ inputs.aosp-gcc }} = true ]; then
+            mkdir $HOME/clang -p -v 
+            wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android${{ inputs.android-version }}-release/clang-${{ inputs.aosp-clang-version }}.tar.gz
+            tar -C $HOME/clang -zxf clang-${{ inputs.aosp-clang-version }}.tar.gz
+        else
+            echo "Please enable aosp-gcc."
+            exit 127
+        fi
+      shell: bash
+
+    - name: pull kernel source from selected branch
+      run: |
+        git clone ${{ inputs.kernel-url }} -b "${{ inputs.branch }}" --depth=1 ${{ inputs.kernel-dir }}
+      shell: bash
+
+    - name: pull vendor source
+      if: inputs.vendor == 'true'
+      run: |
+        git clone ${{ inputs.vendor-url }} --depth=1 ${{ inputs.vendor-dir }}
+      shell: bash
 
     - name: Setup ccache 
       if: inputs.ccache == 'true' 
@@ -126,242 +196,142 @@ runs:
         key: build-kernel-${{ inputs.arch }}${{ inputs.config }} 
         max-size: 4G
 
-    - name: Build Kernel
+    - name: Set swap space
+      uses: pierotofy/set-swap-space@master 
+      with: 
+        swap-size-gb: 12
+   
+    - name: pull kernelsu
+      if: inputs.ksu == 'true'
+      run: |
+        cd ${{ inputs.kernel-dir }}
+        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s ${{ inputs.ksu-version }}
+      shell: bash
+
+    - name: disable lto
+      if: inputs.disable-lto == 'true'
       shell: bash
       run: |
-         curl -SsL https://github.com/rokibhasansagar/slimhub_actions/raw/main/cleanup.sh | bash
-         echo "::group:: Installing Building Depend Packages"
-         sudo apt-get install -q -y binutils binutils-aarch64-linux-gnu binutils-arm-linux-gnueabi git ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python3
-         echo "::endgroup::"
+        cd ${{ inputs.kernel-dir }}
+        if grep -q "LTO" "arch/${{ inputs.arch }}/configs/${{ inputs.config }}"
+        then
+             sed -i 's/CONFIG_LTO=y/CONFIG_LTO=n/' arch/${{ inputs.arch }}/configs/${{ inputs.config }} 
+             sed -i 's/CONFIG_LTO_CLANG=y/CONFIG_LTO_CLANG=n/' arch/${{ inputs.arch }}/configs/${{ inputs.config }} 
+             sed -i 's/CONFIG_THINLTO=y/CONFIG_THINLTO=n/' arch/${{ inputs.arch }}/configs/${{ inputs.config }} 
+             echo "CONFIG_LTO_NONE=y" >> arch/${{ inputs.arch }}/configs/${{ inputs.config }}
+        fi
 
-         echo "::group:: Setting Up Swap"
-         export SWAP_FILE=$(swapon --show=NAME | tail -n 1)
-         sudo swapoff $SWAP_FILE
-         sudo rm $SWAP_FILE
-         sudo fallocate -l 16G $SWAP_FILE
-         sudo chmod 600 $SWAP_FILE
-         sudo mkswap $SWAP_FILE
-         sudo swapon $SWAP_FILE
-         echo Memory Status
-         free -h
-         echo Swap Status
-         swapon --show
-         echo "::endgroup::"
+    - name: enable overlayfs
+      if: inputs.overlayfs == 'true'
+      shell: bash
+      run: |
+        cd ${{ inputs.kernel-dir }}
+        grep -q "OVERLAY_FS" "arch/${{ inputs.arch }}/configs/${{ inputs.config }}" || echo "CONFIG_OVERLAY_FS=y" >> arch/${{ inputs.arch }}/configs/${{ inputs.config }}
+      
+    - name: enable kvm
+      if: inputs.kvm == 'true'
+      shell: bash
+      run: |
+        cd ${{ inputs.kernel-dir }}
+        echo "CONFIG_VIRTUALIZATION=y" >> arch/${{ inputs.arch }}/configs/${{ inputs.config }}
+        echo "CONFIG_KVM=y" >> arch/${{ inputs.arch }}/configs/${{ inputs.config }}
+        echo "CONFIG_KVM_MMIO=y" >> arch/${{ inputs.arch }}/configs/${{ inputs.config }}
+        echo "CONFIG_KVM_ARM_HOST=y" >> arch/${{ inputs.arch }}/configs/${{ inputs.config }}
 
-         if [ ${{ inputs.aosp-gcc }} = true ]; then
-             echo "::group:: Downloading AOSP GCC"
-             if [ ${{ inputs.aosp-clang }} = true ]; then
-                 mkdir -p -v $HOME/gcc-64
-                 wget -O gcc-aarch64.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
-                 tar -C $HOME/gcc-64 -zxf gcc-aarch64.tar.gz
-                 mkdir -p -v $HOME/gcc-32
-                 wget -O gcc-arm.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
-                 tar -C $HOME/gcc-32 -zxf gcc-arm.tar.gz
-             else
-                 git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/ --depth=1 -b android${{ inputs.android-version }}-release $HOME/gcc-64
-                 git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/ --depth=1 -b android${{ inputs.android-version }}-release $HOME/gcc-32
-             fi
-         fi
-         echo "::endgroup::"
-
-         if [ ${{ inputs.other-clang }} = true ]; then
-             if [ ${{ inputs.aosp-clang }} = true ]; then
-                 echo "please disable aosp-clang to use 3rd clang."
-                 exit 1
-             else
-                 echo "::group:: Downloading 3rd clang"
-                 git clone ${{ inputs.other-clang-url }} -b ${{ inputs.other-clang-branch }} $HOME/clang --depth=${{ inputs.depth }}
-             fi
-         fi
-         echo "::endgroup::"
-         
-         if [ ${{ inputs.android-ndk }} = true ]; then
-             echo "::group:: Downloading Android NDK"
-             if [ ${{ inputs.aosp-gcc }} = false ]; then
-                 echo
-                 if [ ${{ inputs.android-ndk-x64 }} = false ]; then
-                     wget -O android-ndk.zip https://dl.google.com/android/repository/android-ndk-${{ inputs.android-ndk-version }}-linux.zip
-                     unzip -d $HOME android-ndk.zip
-                 else
-                     wget -O android-ndk.zip https://dl.google.com/android/repository/android-ndk-${{ inputs.android-ndk-version }}-linux-x86_64.zip
-                     unzip -d $HOME android-ndk.zip
-                 fi
-             else
-                 echo "Please disable aosp-gcc and aosp-clang."
-                 exit 127
-             fi
-             echo "::endgroup::"
-
-             export HOMES=$(pwd) 
-             export LLVMS=$HOME/android-ndk-${{ inputs.android-ndk-version }}/toolchains/llvm/prebuilt/linux-x86_64/bin
-             cd $LLVMS
-             for file in $(ls llvm-*); do
-                 ln -s "$file" "aarch64-linux-android$(( ${{ inputs.android-version }} + 19 ))-${file#llvm-}"
-             done
-             cd $HOMES
-         fi
-
-         if [ ${{ inputs.python-27 }} = true ]; then
-             echo "::group:: Installing Python2.7 instead Python3"
-             sudo apt-get install -y -q python2.7 python2.7-minimal
-             sudo rm -v /bin/python
-             sudo ln -s /bin/python2.7 /bin/python
-             sudo ln -s /bin/python2.7 /bin/python2
-             echo "::endgroup::"
-         fi
-
-         if [ ${{ inputs.aosp-clang }} = true ]; then
-             echo "::group:: Downloading AOSP clang"
-             if [ ${{ inputs.aosp-gcc }} = true ]; then
-                 mkdir $HOME/clang -p -v 
-                 wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android${{ inputs.android-version }}-release/clang-${{ inputs.aosp-clang-version }}.tar.gz
-                 tar -C $HOME/clang -zxf clang-${{ inputs.aosp-clang-version }}.tar.gz
-             else
-                 echo "Please enable aosp-gcc."
-                 exit 127
-             fi
-             echo "::endgroup::"
-         fi
-         
-         echo "::group:: Pulling Kernel Source"
-         git clone ${{ inputs.kernel-url }} -b "${{ inputs.branch }}" --depth=${{ inputs.depth }} ${{ inputs.kernel-dir }}
+    - name: enable lxc
+      if: inputs.lxc == 'true'
+      shell: bash
+      run: |
          cd ${{ inputs.kernel-dir }}
-         test -f .gitmodules && git submodule update --init
-         cd ..
-         echo "::endgroup::"
-
-         if [ ${{ inputs.vendor }} = true ]; then
-             echo "::group:: <<<Pulling Kernel vendor source"
-             git clone ${{ inputs.vendor-url }} --depth=${{ inputs.depth }} ${{ inputs.vendor-dir }}
-             echo "::endgroup::"
+         wget https://github.com/wu17481748/lxc-docker/raw/main/LXC-DOCKER-OPEN-CONFIG.sh
+         bash LXC-DOCKER-OPEN-CONFIG.sh ${{ inputs.config }} -w
+         if [ ${{ inputs.lxc-patch }} = true ]; then
+             wget https://github.com/wu17481748/lxc-docker/raw/main/lxc.patch
+             git apply lxc.patch
+         else
+             echo skip lxc patch
          fi
-         
-         if [ ${{ inputs.ksu }} = true ]; then
-            echo "::group:: Installing KernelSU"
+
+    - name: build kernel with clang
+      if: inputs.aosp-clang == 'true'
+      run: |
+        cd ${{ inputs.kernel-dir }}
+        mkdir -p -v out
+        export CLANG_PATH=$HOME/clang
+        export PATH=$CLANG_PATH/bin:$PATH
+        make -j$(nproc --all) CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- CLANG_TRIPLE=aarch64-linux-gnu- CC=clang ARCH=${{ inputs.arch }} O=out ${{ inputs.config }}
+        if [ ${{ inputs.ccache }} = true ]; then
+            export USE_CCACHE=1
+            make -j$(nproc --all) CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- CLANG_TRIPLE=aarch64-linux-gnu- CC="ccache clang" ARCH=${{ inputs.arch }} O=out ${{ inputs.extra-cmd }}
+        else
+            make -j$(nproc --all) CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- CLANG_TRIPLE=aarch64-linux-gnu- CC=clang ARCH=${{ inputs.arch }} O=out ${{ inputs.extra-cmd }}
+        fi
+      shell: bash
+
+    - name: build kernel with gcc
+      if: inputs.aosp-gcc == 'true'
+      run: |
+        if [ ${{ inputs.aosp-clang }} = false ]; then
             cd ${{ inputs.kernel-dir }}
-            curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s ${{ inputs.ksu-version }}
-            echo "::endgroup::"
-         fi
+            mkdir -p -v out
+            make -j$(nproc --all) CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- ARCH=${{ inputs.arch }} O=out ${{ inputs.config }}
+            make -j$(nproc --all) CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- ARCH=${{ inputs.arch }} O=out ${{ inputs.extra-cmd }} 
+        else
+            echo 
+        fi
+            
+      shell: bash
 
-         if [ ${{ inputs.disable-lto }} = true ]; then
-             if grep -q "LTO" "arch/${{ inputs.arch }}/configs/${{ inputs.config }}"
-             then
-                  sed -i 's/CONFIG_LTO=y/CONFIG_LTO=n/' arch/${{ inputs.arch }}/configs/${{ inputs.config }} 
-                  sed -i 's/CONFIG_LTO_CLANG=y/CONFIG_LTO_CLANG=n/' arch/${{ inputs.arch }}/configs/${{ inputs.config }} 
-                  sed -i 's/CONFIG_THINLTO=y/CONFIG_THINLTO=n/' arch/${{ inputs.arch }}/configs/${{ inputs.config }} 
-                  echo "CONFIG_LTO_NONE=y" >> arch/${{ inputs.arch }}/configs/${{ inputs.config }}
-             fi
-         fi
+    - name: build kernel with android-ndk
+      if: inputs.android-ndk == 'true'
+      shell: bash
+      run: |
+        cd ${{ inputs.kernel-dir }}
+        mkdir -p -v out
+        export CLANG_PATH=$HOME/android-ndk-${{ inputs.android-ndk-version }}/toolchains/llvm/prebuilt/linux-x86_64
+        export PATH=$CLANG_PATH/bin:$PATH
+        make -j$(nproc --all) CROSS_COMPILE=$CLANG_PATH/bin/llvm- COMPILE_ARM32=$CLANG_PATH/bin/llvm- CLANG_TRIPLE=aarch64-linux-android$(( ${{ inputs.android-version }} + 19 ))- CC=clang ARCH=${{ inputs.arch }} O=out ${{ inputs.config }}
+        if [ ${{ inputs.ccache }} = true ]; then
+            export USE_CCACHE=1
+            make -j$(nproc --all) CROSS_COMPILE=$CLANG_PATH/bin/llvm- COMPILE_ARM32=$CLANG_PATH/bin/llvm- CLANG_TRIPLE=aarch64-linux-android$(( ${{ inputs.android-version }} + 19 ))- CC="ccache clang" ARCH=${{ inputs.arch }} O=out ${{ inputs.extra-cmd }}
+        else
+            make -j$(nproc --all) CROSS_COMPILE=$CLANG_PATH/bin/llvm- COMPILE_ARM32=$CLANG_PATH/bin/llvm- CLANG_TRIPLE=aarch64-linux-android$(( ${{ inputs.android-version }} + 19 ))- CC=clang ARCH=${{ inputs.arch }} O=out ${{ inputs.extra-cmd }}
+        fi
+      
 
-         if [ ${{ inputs.overlayfs }} = true ]; then
-             grep -q "OVERLAY_FS" "arch/${{ inputs.arch }}/configs/${{ inputs.config }}" || echo "CONFIG_OVERLAY_FS=y" >> arch/${{ inputs.arch }}/configs/${{ inputs.config }}
-         fi
+    - name: copy kernel
+      if: inputs.anykernel3 == 'false'
+      shell: bash
+      run: |
+        mkdir -p -v build
+        if [ -f ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/Image.*-dtb ]; then
+           cp ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/Image.*-dtb build -rv
+        elif [ -f ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/Image.* ]; then
+           cp ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/Image.* build -rv
+        else
+           cp ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/Image build -rv
+        fi
 
-         if [ ${{ inputs.kvm }} = true ]; then
-            echo "CONFIG_VIRTUALIZATION=y" >> arch/${{ inputs.arch }}/configs/${{ inputs.config }}
-            echo "CONFIG_KVM=y" >> arch/${{ inputs.arch }}/configs/${{ inputs.config }}
-            echo "CONFIG_KVM_MMIO=y" >> arch/${{ inputs.arch }}/configs/${{ inputs.config }}
-            echo "CONFIG_KVM_ARM_HOST=y" >> arch/${{ inputs.arch }}/configs/${{ inputs.config }}
-         fi
+    - name: package with anykernel3
+      if: inputs.anykernel3 == 'true'
+      run: | 
+        git clone https://github.com/osm0sis/AnyKernel3
+        sed -i 's!block=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;!block=auto;!g' AnyKernel3/anykernel.sh
+        sed -i 's/do.devicecheck=1/do.devicecheck=0/g' AnyKernel3/anykernel.sh
+        sed -i 's/is_slot_device=0;/is_slot_device=auto;/g' AnyKernel3/anykernel.sh
+        echo $(pwd)
+        if [ -f ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/Image.*-dtb ]; then
+           cp ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/Image.*-dtb AnyKernel3 -rv
+        elif [ -f ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/Image.* ]; then
+           cp ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/Image.* AnyKernel3 -rv
+        else
+           cp ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/Image AnyKernel3 -rv
+        fi
 
-         if [ ${{ inputs.lxc }} = true ]; then
-             echo "::group:: Enabling LXC"
-             wget https://github.com/wu17481748/lxc-docker/raw/main/LXC-DOCKER-OPEN-CONFIG.sh
-             bash LXC-DOCKER-OPEN-CONFIG.sh ${{ inputs.config }} -w
-             grep -q "CONFIG_ANDROID_PARANOID_NETWORK" "arch/${{ inputs.arch }}/configs/${{ inputs.config }}" && sed -i 's/CONFIG_ANDROID_PARANOID_NETWORK=y/#CONFIG_ANDROID_PARANOID_NETWORK=y/' arch/${{ inputs.arch }}/configs/${{ inputs.config }}
-             if [ ${{ inputs.lxc-patch }} = true ]; then
-                 wget https://github.com/wu17481748/lxc-docker/raw/main/cgroup.patch
-                 patch kernel/cgroup/cgroup.c < cgroup.patch
-                 wget https://github.com/wu17481748/lxc-docker/raw/main/xt_qtaguid.patch
-                 patch net/netfilter/xt_qtaguid.c < xt_qtaguid.patch
-             else
-                 echo skip lxc patch
-             fi
-             echo "::endgroup::"
-         fi
-
-         export A=$(date +%s)
-         if [ ${{ inputs.aosp-clang }} = true ]; then
-             echo "::group:: Building Kernel"
-             mkdir -p -v out
-             export CLANG_PATH=$HOME/clang
-             export PATH=$CLANG_PATH/bin:$PATH
-             make -j$(nproc --all) CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- CLANG_TRIPLE=aarch64-linux-gnu- CC=clang ARCH=${{ inputs.arch }} O=out ${{ inputs.config }}
-             if [ ${{ inputs.ccache }} = true ]; then
-                 export USE_CCACHE=1
-                 make -j$(nproc --all) CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- CLANG_TRIPLE=aarch64-linux-gnu- CC="ccache clang" ARCH=${{ inputs.arch }} O=out ${{ inputs.extra-cmd }}
-             else
-                 make -j$(nproc --all) CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- CLANG_TRIPLE=aarch64-linux-gnu- CC=clang ARCH=${{ inputs.arch }} O=out ${{ inputs.extra-cmd }}
-             fi
-             echo "::endgroup::"
-         elif [ ${{ inputs.android-ndk }} = true ]; then
-             echo "::group:: Building Kernel with Android NDK"
-             mkdir -p -v out
-             export CLANG_PATH=$HOME/android-ndk-${{ inputs.android-ndk-version }}/toolchains/llvm/prebuilt/linux-x86_64
-             export PATH=$CLANG_PATH/bin:$PATH
-             make -j$(nproc --all) CROSS_COMPILE=$CLANG_PATH/bin/llvm- COMPILE_ARM32=$CLANG_PATH/bin/llvm- CLANG_TRIPLE=aarch64-linux-android$(( ${{ inputs.android-version }} + 19 ))- CC=clang ARCH=${{ inputs.arch }} O=out ${{ inputs.config }}
-             if [ ${{ inputs.ccache }} = true ]; then
-                 export USE_CCACHE=1
-                 make -j$(nproc --all) CROSS_COMPILE=$CLANG_PATH/bin/llvm- COMPILE_ARM32=$CLANG_PATH/bin/llvm- CLANG_TRIPLE=aarch64-linux-android$(( ${{ inputs.android-version }} + 19 ))- CC="ccache clang" ARCH=${{ inputs.arch }} O=out ${{ inputs.extra-cmd }}
-             else
-                 make -j$(nproc --all) CROSS_COMPILE=$CLANG_PATH/bin/llvm- COMPILE_ARM32=$CLANG_PATH/bin/llvm- CLANG_TRIPLE=aarch64-linux-android$(( ${{ inputs.android-version }} + 19 ))- CC=clang ARCH=${{ inputs.arch }} O=out ${{ inputs.extra-cmd }}
-             fi
-             echo "::endgroup::"
-         elif [ ${{ inputs.other-clang }} = true ]; then
-             echo "::group:: Building Kernel"
-             mkdir -p -v out
-             export CLANG_PATH=$HOME/clang
-             export PATH=$CLANG_PATH/bin:$PATH
-             make -j$(nproc --all) CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- CLANG_TRIPLE=aarch64-linux-gnu- CC=clang ARCH=${{ inputs.arch }} O=out ${{ inputs.config }}
-             if [ ${{ inputs.ccache }} = true ]; then
-                 export USE_CCACHE=1
-                 make -j$(nproc --all) CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- CLANG_TRIPLE=aarch64-linux-gnu- CC="ccache clang" ARCH=${{ inputs.arch }} O=out ${{ inputs.extra-cmd }}
-             else
-                 make -j$(nproc --all) CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- CLANG_TRIPLE=aarch64-linux-gnu- CC=clang ARCH=${{ inputs.arch }} O=out ${{ inputs.extra-cmd }}
-             fi
-         elif [ ${{ inputs.aosp-gcc }} = true ]; then
-             echo "::group:: Building Kernel use GCC"
-             mkdir -p -v out
-             make -j$(nproc --all) CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- ARCH=${{ inputs.arch }} O=out ${{ inputs.config }}
-             make -j$(nproc --all) CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- ARCH=${{ inputs.arch }} O=out ${{ inputs.extra-cmd }} 
-             echo "::endgroup::"
-             echo "::endgroup::"
-         fi
-
-         export B=$(date +%s)
-         export C=$(expr $B - $A)
-         echo "kernel build finish,takes" $(expr $C / 60)"min"$(expr $C % 60)"s"
-
-         if [ ${{ inputs.anykernel3 }} = false ]; then
-            echo "::group:: Preparing to Upload bare-compiled-kernel"
-            mkdir -p -v ../build
-            if [ -f out/arch/${{ inputs.arch }}/boot/Image.*-dtb ]; then
-               cp out/arch/${{ inputs.arch }}/boot/Image.*-dtb ../build -rv
-            elif [ -f out/arch/${{ inputs.arch }}/boot/Image.* ]; then
-               cp out/arch/${{ inputs.arch }}/boot/Image.* ../build -rv
-            else
-               cp out/arch/${{ inputs.arch }}/boot/Image ../build -rv
-            fi
-            echo "::endgroup::"
-            else
-                echo "::group:: Packaging Anykernel3 flasher"
-                git clone https://github.com/osm0sis/AnyKernel3
-                sed -i 's!block=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;!block=auto;!g' AnyKernel3/anykernel.sh
-                sed -i 's/do.devicecheck=1/do.devicecheck=0/g' AnyKernel3/anykernel.sh
-                sed -i 's/is_slot_device=0;/is_slot_device=auto;/g' AnyKernel3/anykernel.sh
+        test -f ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/dtbo.img && cp ${{ inputs.kernel-dir }}/out/arch/${{ inputs.arch }}/boot/dtbo.img AnyKernel3/
         
-            if [ -f out/arch/${{ inputs.arch }}/boot/Image.*-dtb ]; then
-               cp out/arch/${{ inputs.arch }}/boot/Image.*-dtb AnyKernel3 -rv
-            else
-               cp out/arch/${{ inputs.arch }}/boot/Image.* AnyKernel3 -rv
-            fi
-
-            test -f out/arch/${{ inputs.arch }}/boot/dtbo.img && cp out/arch/${{ inputs.arch }}/boot/dtbo.img AnyKernel3/
-        
-            rm -rf AnyKernel3/.git* AnyKernel3/README.md
-            cp AnyKernel3 ../ -r -v
-            echo "::endgroup::"
-         fi
+        rm -rf AnyKernel3/.git* AnyKernel3/README.md
+      shell: bash
 
     - id: uploadi
       if: inputs.anykernel3 == 'false'
@@ -382,4 +352,4 @@ posts:
   steps:
     - name: post
       shell: bash
-      run:  $HOME/clang/bin/clang --version
+      run:  bash $GITHUB_ACTION_PATH/post.sh
