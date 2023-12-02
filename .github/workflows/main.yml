@@ -62,6 +62,8 @@ jobs:
         run: |
           git clone ${{ env.kernel-url }} -b "${{ env.branch }}" --depth=1 ${{ env.kernel-dir }}
           cd ${{ env.kernel-dir }}
+          git submodule init
+          git submodule update
         shell: bash
 
       - name: Setup ccache
