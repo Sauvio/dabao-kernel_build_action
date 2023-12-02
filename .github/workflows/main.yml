@@ -17,7 +17,7 @@ jobs:
       config: kebab_defconfig
       arch: arm64
       custom-clang: true
-      clang-url: https://storage.xzr.moe/horizon-clang/Horizon-Clang-16.0.6.tar.xz
+      clang-url: https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android13-release/clang-r450784d.tar.gz
       ksu: true
       ksu-version: v0.7.1
       anykernel3: true
@@ -29,10 +29,7 @@ jobs:
 
       - name: install package
         shell: bash
-        run:
-          echo "deb http://th.archive.ubuntu.com/ubuntu jammy main" | sudo tee -a /etc/apt/sources.list
-          sudo apt update
-          sudo apt install -y git ccache automake flex lzop bison gperf build-essential zip curl gzip xz-utils zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 libc6 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python3
+        run: sudo apt install -y git ccache automake flex lzop bison gperf build-essential zip curl gzip xz-utils zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler
 
       - name: use python 2.7
         if: env.python-27 == 'true'
