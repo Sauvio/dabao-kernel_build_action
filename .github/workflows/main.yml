@@ -118,7 +118,6 @@ jobs:
                OBJCOPY=${CLANG_PATH}/bin/llvm-objcopy \
                OBJDUMP=${CLANG_PATH}/bin/llvm-objdump \
                STRIP=${CLANG_PATH}/bin/llvm-strip \
-               LD=${CLANG_PATH}/bin/ld.lld \
                O=out \
                ${{ env.config }}
           if [ ${{ env.ccache }} = true ]; then
@@ -135,7 +134,6 @@ jobs:
                    OBJCOPY=${CLANG_PATH}/bin/llvm-objcopy \
                    OBJDUMP=${CLANG_PATH}/bin/llvm-objdump \
                    STRIP=${CLANG_PATH}/bin/llvm-strip \
-                   LD=${CLANG_PATH}/bin/ld.lld \
                    O=out \
                    ${{ env.extra-cmd}}
           else
@@ -152,7 +150,6 @@ jobs:
                    OBJCOPY=${CLANG_PATH}/bin/llvm-objcopy \
                    OBJDUMP=${CLANG_PATH}/bin/llvm-objdump \
                    STRIP=${CLANG_PATH}/bin/llvm-strip \
-                   LD=${CLANG_PATH}/bin/ld.lld \
                    O=out \
                    ${{ env.extra-cmd}}
           fi
