@@ -139,6 +139,7 @@ jobs:
                    CROSS_COMPILE_COMPAT=${CLANG_PATH}/bin/arm-linux-gnueabi- \
                    CLANG_TRIPLE=aarch64-linux-gnu- \
                    CC="ccache ${CLANG_PATH}/bin/clang" \
+                   CFLAGS_EXTRA="${{ env.cflags-extra }}" \
                    ARCH=${{ env.arch }} \
                    AR=${CLANG_PATH}/bin/llvm-ar \
                    NM=${CLANG_PATH}/bin/llvm-nm \
