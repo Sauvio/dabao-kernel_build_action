@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build Kernel by ${{ github.actor }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: github.event.repository.owner.id == github.event.sender.id
     env:
       kernel-url: https://github.com/Sauvio/libxzr-android_kernel_oneplus_sm8250.git
@@ -17,7 +17,7 @@ jobs:
       config: kebab_defconfig
       arch: arm64
       custom-clang: true
-      clang-url: https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android13-release/clang-r450784d.tar.gz
+      clang-url: https://storage.xzr.moe/horizon-clang/Horizon-Clang-17.0.6.tar.xz
       ksu: true
       ksu-version: v0.7.1
       anykernel3: true
@@ -56,12 +56,6 @@ jobs:
           else
             echo "Unknown compression format or unsupported file"
           fi
-          mkdir -p -v $HOME/gcc-64
-          wget -q -O gcc-aarch64.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
-          tar -C $HOME/gcc-64 -zxf gcc-aarch64.tar.gz
-          mkdir -p -v $HOME/gcc-32
-          wget -q -O gcc-arm.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
-          tar -C $HOME/gcc-32 -zxf gcc-arm.tar.gz
         shell: bash
 
       - name: pull kernel source from selected branch
@@ -112,30 +106,54 @@ jobs:
           export CLANG_PATH=$HOME/clang
           export PATH=$CLANG_PATH/bin:$PATH
           make -j$(nproc --all) \
-               CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- \
-               COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- \
+               CROSS_COMPILE=${CLANG_PATH}/bin/aarch64-linux-android- \
+               CROSS_COMPILE_COMPAT=${CLANG_PATH}/bin/arm-linux-gnueabi- \
                CLANG_TRIPLE=aarch64-linux-gnu- \
                CC=${CLANG_PATH}/bin/clang \
                ARCH=${{ env.arch }} \
+               AR=${CLANG_PATH}/bin/llvm-ar \
+               NM=${CLANG_PATH}/bin/llvm-nm \
+               LLVM_AR=${CLANG_PATH}/bin/llvm-ar \
+               LLVM_NM=${CLANG_PATH}/bin/llvm-nm \
+               OBJCOPY=${CLANG_PATH}/bin/llvm-objcopy \
+               OBJDUMP=${CLANG_PATH}/bin/llvm-objdump \
+               STRIP=${CLANG_PATH}/bin/llvm-strip \
+               LD=${CLANG_PATH}/bin/ld.lld \
                O=out \
                ${{ env.config }}
           if [ ${{ env.ccache }} = true ]; then
               export USE_CCACHE=1
               make -j$(nproc --all) \
-                   CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- \
-                   COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi- \
+                   CROSS_COMPILE=${CLANG_PATH}/bin/aarch64-linux-android- \
+                   CROSS_COMPILE_COMPAT=${CLANG_PATH}/bin/arm-linux-gnueabi- \
                    CLANG_TRIPLE=aarch64-linux-gnu- \
                    CC="ccache ${CLANG_PATH}/bin/clang" \
                    ARCH=${{ env.arch }} \
+                   AR=${CLANG_PATH}/bin/llvm-ar \
+                   NM=${CLANG_PATH}/bin/llvm-nm \
+                   LLVM_AR=${CLANG_PATH}/bin/llvm-ar \
+                   LLVM_NM=${CLANG_PATH}/bin/llvm-nm \
+                   OBJCOPY=${CLANG_PATH}/bin/llvm-objcopy \
+                   OBJDUMP=${CLANG_PATH}/bin/llvm-objdump \
+                   STRIP=${CLANG_PATH}/bin/llvm-strip \
+                   LD=${CLANG_PATH}/bin/ld.lld \
                    O=out \
                    ${{ env.extra-cmd}}
           else
               make -j$(nproc --all) \
-                   CROSS_COMPILE=$HOME/gcc-64/bin/aarch64-linux-android- \
-                   COMPILE_ARM32=$HOME/gcc-32/bin/arm-linux-androideabi-
+                   CROSS_COMPILE=${CLANG_PATH}/bin/aarch64-linux-android- \
+                   CROSS_COMPILE_COMPAT=${CLANG_PATH}/bin/arm-linux-gnueabi- \
                    CLANG_TRIPLE=aarch64-linux-gnu- \
                    CC=${CLANG_PATH}/bin/clang \
                    ARCH=${{ env.arch }} \
+                   AR=${CLANG_PATH}/bin/llvm-ar \
+                   NM=${CLANG_PATH}/bin/llvm-nm \
+                   LLVM_AR=${CLANG_PATH}/bin/llvm-ar \
+                   LLVM_NM=${CLANG_PATH}/bin/llvm-nm \
+                   OBJCOPY=${CLANG_PATH}/bin/llvm-objcopy \
+                   OBJDUMP=${CLANG_PATH}/bin/llvm-objdump \
+                   STRIP=${CLANG_PATH}/bin/llvm-strip \
+                   LD=${CLANG_PATH}/bin/ld.lld \
                    O=out \
                    ${{ env.extra-cmd}}
           fi
