@@ -41,7 +41,7 @@ jobs:
         shell: bash
 
       - name: Checkout Repository
-          uses: actions/checkout@v2
+        uses: actions/checkout@v2
 
       - name: Check Environment
         run: |
@@ -52,7 +52,7 @@ jobs:
         run: cat /lib/x86_64-linux-gnu/libc.so.6
 
       - name: Check glibc Version
-          run: ldd --version
+        run: ldd --version
 
       - name: download custom clang
         if: env.custom-clang == 'true'
