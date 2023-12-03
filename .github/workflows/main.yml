@@ -40,6 +40,20 @@ jobs:
           sudo ln -s /bin/python2.7 /bin/python2
         shell: bash
 
+      - name: Checkout Repository
+          uses: actions/checkout@v2
+
+      - name: Check Environment
+        run: |
+          echo "RUNNER_OS: $RUNNER_OS"
+          echo "RUNNER_TEMP: $RUNNER_TEMP"
+
+      - name: Check glibc Version
+        run: cat /lib/x86_64-linux-gnu/libc.so.6
+
+      - name: Check glibc Version
+          run: ldd --version
+
       - name: download custom clang
         if: env.custom-clang == 'true'
         run: |
