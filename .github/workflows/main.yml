@@ -17,8 +17,7 @@ jobs:
       config: kebab_defconfig
       arch: arm64
       custom-clang: true
-      clang-url: https://storage.xzr.moe/horizon-clang/Horizon-Clang-17.0.6.tar.xz
-      cflags-extra: -Wno-address-of-packed-member
+      clang-url: https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android11-mainline-release/clang-r383902b/bin.tar.gz
       ksu: true
       ksu-version: v0.7.1
       anykernel3: true
@@ -122,7 +121,6 @@ jobs:
                CROSS_COMPILE_COMPAT=${CLANG_PATH}/bin/arm-linux-gnueabi- \
                CLANG_TRIPLE=aarch64-linux-gnu- \
                CC=${CLANG_PATH}/bin/clang \
-               CFLAGS_EXTRA="${{ env.cflags-extra }}" \
                ARCH=${{ env.arch }} \
                AR=${CLANG_PATH}/bin/llvm-ar \
                NM=${CLANG_PATH}/bin/llvm-nm \
@@ -141,7 +139,6 @@ jobs:
                    CROSS_COMPILE_COMPAT=${CLANG_PATH}/bin/arm-linux-gnueabi- \
                    CLANG_TRIPLE=aarch64-linux-gnu- \
                    CC="ccache ${CLANG_PATH}/bin/clang" \
-                   CFLAGS_EXTRA="${{ env.cflags-extra }}" \
                    ARCH=${{ env.arch }} \
                    AR=${CLANG_PATH}/bin/llvm-ar \
                    NM=${CLANG_PATH}/bin/llvm-nm \
@@ -159,7 +156,6 @@ jobs:
                    CROSS_COMPILE_COMPAT=${CLANG_PATH}/bin/arm-linux-gnueabi- \
                    CLANG_TRIPLE=aarch64-linux-gnu- \
                    CC=${CLANG_PATH}/bin/clang \
-                   CFLAGS_EXTRA="${{ env.cflags-extra }}" \
                    ARCH=${{ env.arch }} \
                    AR=${CLANG_PATH}/bin/llvm-ar \
                    NM=${CLANG_PATH}/bin/llvm-nm \
