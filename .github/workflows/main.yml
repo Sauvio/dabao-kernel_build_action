@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-20.04
     if: github.event.repository.owner.id == github.event.sender.id
     env:
-      kernel-url: https://github.com/Sauvio/libxzr-android_kernel_oneplus_sm8250.git
+      kernel-url: https://github.com/Sauvio/OPlus8T_bluspark.git
       kernel-dir: kernel
-      branch: oos11-final-ksu
-      config: kebab_defconfig
+      branch: master
+      config: blu_spark_defconfig
       arch: arm64
       custom-clang: true
       clang-url: https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/tags/android-12.0.0_r34/clang-r416183b.tar.gz
@@ -43,7 +43,7 @@ jobs:
         shell: bash
 
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Check Environment
         run: |
@@ -246,9 +246,11 @@ jobs:
              cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image AnyKernel3 -rv
           fi
 
+          : "
           test -f ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dtbo.img && cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dtbo.img AnyKernel3/
           test -f ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom/kona-v2.1.dtb && cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom/kona-v2.1.dtb AnyKernel3/dtb
           test -f ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom/instantnoodle-t0.dtb && cp ${{ env.kernel-dir }} /out/arch/${{ env.arch }}/boot/dts/vendor/qcom/instantnoodle-t0.dtb AnyKernel3/dtb
+          "
           rm -rf AnyKernel3/.git* AnyKernel3/README.md
         shell: bash
 
