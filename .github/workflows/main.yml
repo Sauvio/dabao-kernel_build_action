@@ -56,48 +56,38 @@ jobs:
         run: |
           mkdir $HOME/clang -p -v
           OUTPUT_FILE="custom-clang.tar.gz"
-          EXTRACTION_DIR="$HOME/clang"
-          TARGET_DIR="$EXTRACTION_DIR"
-
-          # Print some information
-          echo "Checking if Clang is installed..."
-
+          EXTRACTION_DIR="$HOME/custom-clang"
+          TARGET_DIR="$HOME/clang"
+          wget -q ${{ env.clang-url}} -O $OUTPUT_FILE
           if tar -tf $OUTPUT_FILE &> /dev/null; then
-            # Check if 'bin' directory exists in the archive
-            if tar -tf $OUTPUT_FILE | grep -q '/bin/'; then
-              TARGET_DIR="$EXTRACTION_DIR/bin"
-            fi
-
-            echo "Extracting Clang to $TARGET_DIR..."
-            tar -xf $OUTPUT_FILE -C "$TARGET_DIR"
+            tar -xf $OUTPUT_FILE -C "$EXTRACTION_DIR"
           elif file $OUTPUT_FILE | grep -q "gzip compressed data"; then
-            # Check if 'bin' directory exists in the archive
-            if tar -tf $OUTPUT_FILE | grep -q '/bin/'; then
-              TARGET_DIR="$EXTRACTION_DIR/bin"
-            fi
-
-            echo "Extracting Clang to $TARGET_DIR..."
-            tar -xzf $OUTPUT_FILE -C "$TARGET_DIR"
+            tar -xzf $OUTPUT_FILE -C "$EXTRACTION_DIR"
           elif file $OUTPUT_FILE | grep -q "XZ compressed data"; then
-            # Check if 'bin' directory exists in the archive
-            if tar -tf $OUTPUT_FILE | grep -q '/bin/'; then
-              TARGET_DIR="$EXTRACTION_DIR/bin"
-            fi
-
-            echo "Extracting Clang to $TARGET_DIR..."
-            tar -xf $OUTPUT_FILE -C "$TARGET_DIR"
+            tar -xf $OUTPUT_FILE -C "$EXTRACTION_DIR"
           else
             echo "Unknown compression format or unsupported file"
-            exit 1
           fi
+
+          # Check if 'bin' directory exists in the extracted directory
+          if [ ! -d "$EXTRACTION_DIR/bin" ]; then
+            echo "Creating 'bin' directory..."
+            TARGET_DIR=$HOME/clang/bin
+            mkdir $HOME/clang/bin -p -v
+          else
+            TARGET_DIR=$HOME/clang
+            mkdir $HOME/clang -p -v
+          fi
+
+          # Move contents to 'bin' directory
+          mv "$EXTRACTION_DIR"/* "$TARGET_DIR"
 
           # Print the content of the 'bin' directory to verify
           ls -l "$TARGET_DIR"
 
           # Print Clang version information
           $TARGET_DIR/clang --version
-
-          shell: bash
+        shell: bash
 
       - name: pull kernel source from selected branch
         run: |
