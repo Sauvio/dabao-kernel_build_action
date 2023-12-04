@@ -60,7 +60,7 @@ jobs:
           CLANG_EXTRACTION_DIR="$HOME/custom-clang"
           TARGET_DIR="$HOME/clang"
           GCC_64="$HOME/gcc-64"
-          GCC_32="$HOME/GCC_32"
+          GCC_32="$HOME/gcc-32"
           mkdir $CLANG_EXTRACTION_DIR -p -v
           mkdir $GCC_64 -p -v
           mkdir $GCC_32 -p -v
@@ -156,11 +156,13 @@ jobs:
             mv "$GCC_64/bin"/* "$TARGET_DIR"
           else
             mv "$GCC_64"/* "$TARGET_DIR"
+          fi
 
           if [ -d "$GCC_32/bin" ]; then
             mv "$GCC_32/bin"/* "$TARGET_DIR"
           else
             mv "$GCC_32"/* "$TARGET_DIR"
+          fi
 
           # Print the content of the 'bin' directory to verify
           ls -l "$TARGET_DIR"
