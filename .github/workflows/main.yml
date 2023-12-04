@@ -67,6 +67,9 @@ jobs:
           else
             echo "Unknown compression format or unsupported file"
           fi
+
+          ls -l "$EXTRACTION_DIR"
+          $EXTRACTION_DIR/bin/clang --version
         shell: bash
 
       - name: pull kernel source from selected branch
