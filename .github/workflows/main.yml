@@ -13,7 +13,7 @@ jobs:
     env:
       kernel-url: https://github.com/Sauvio/libxzr-android_kernel_oneplus_sm8250.git
       kernel-dir: kernel
-      branch: oos11-ksu
+      branch: oos11-final-ksu
       config: kebab_defconfig
       arch: arm64
       custom-clang: true
