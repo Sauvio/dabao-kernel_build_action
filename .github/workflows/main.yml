@@ -57,18 +57,17 @@ jobs:
         if: env.custom-clang == 'true'
         run: |
           OUTPUT_FILE="custom-clang.tar.gz"
-          CLANG_EXTRACTION_DIR="$HOME/custom-clang"
-          TARGET_DIR="$HOME/clang"
+          CLANG_DIR="$HOME/clang"
           GCC_64="$HOME/gcc-64"
           GCC_32="$HOME/gcc-32"
-          mkdir $CLANG_EXTRACTION_DIR -p -v
-          mkdir $GCC_64 -p -v
-          mkdir $GCC_32 -p -v
+          mkdir "$CLANG_DIR" -p -v
+          mkdir "$GCC_64" -p -v
+          mkdir "$GCC_32" -p -v
 
           # if gcc-aarch64-url && gcc-arm-url exists
           if [ -n "${{ env.gcc-aarch64-url  }}" ] && [ -n "${{ env.gcc-arm-url }}" ]; then
-            wget -q ${{ env.gcc-aarch64-url }} -O gcc-aarch64.tar.gz
-            wget -q ${{ env.gcc-arm-url }} -O gcc-arm.tar.gz
+            wget -q "${{ env.gcc-aarch64-url }}" -O gcc-aarch64.tar.gz
+            wget -q "${{ env.gcc-arm-url }}" -O gcc-arm.tar.gz
 
             if tar -tf gcc-aarch64.tar.gz &> /dev/null; then
               tar -xf gcc-aarch64.tar.gz -C "$GCC_64"
@@ -92,46 +91,27 @@ jobs:
           fi
 
           # get clang
-          wget -q ${{ env.clang-url}} -O $OUTPUT_FILE
+          wget -q "${{ env.clang-url}}" -O $OUTPUT_FILE
           if tar -tf $OUTPUT_FILE &> /dev/null; then
-            tar -xf $OUTPUT_FILE -C "$CLANG_EXTRACTION_DIR"
+            tar -xf $OUTPUT_FILE -C "$CLANG_DIR"
           elif file $OUTPUT_FILE | grep -q "gzip compressed data"; then
-            tar -xzf $OUTPUT_FILE -C "$CLANG_EXTRACTION_DIR"
+            tar -xzf $OUTPUT_FILE -C "$CLANG_DIR"
           elif file $OUTPUT_FILE | grep -q "XZ compressed data"; then
-            tar -xf $OUTPUT_FILE -C "$CLANG_EXTRACTION_DIR"
+            tar -xf $OUTPUT_FILE -C "$CLANG_DIR"
           else
             echo "Unknown compression format or unsupported file"
           fi
 
-          # Check if 'bin' directory exists in the extracted directory
-          if [ ! -d "$CLANG_EXTRACTION_DIR/bin" ]; then
-            echo "Creating 'bin' directory..."
-            TARGET_DIR=$HOME/clang/bin
-            mkdir $HOME/clang/bin -p -v
-          else
-            TARGET_DIR=$HOME/clang
-            mkdir $HOME/clang -p -v
-          fi
-
-          # Move contents to 'bin' directory
-          mv "$CLANG_EXTRACTION_DIR"/* "$TARGET_DIR"
-          if [ -d "$GCC_64/bin" ]; then
-            mv "$GCC_64/bin"/* "$TARGET_DIR"
-          else
-            mv "$GCC_64"/* "$TARGET_DIR"
-          fi
-
-          if [ -d "$GCC_32/bin" ]; then
-            mv "$GCC_32/bin"/* "$TARGET_DIR"
-          else
-            mv "$GCC_32"/* "$TARGET_DIR"
-          fi
-
-          # Print the content of the 'bin' directory to verify
-          ls -l "$TARGET_DIR"
+          # Print the content of directories to verify
+          echo -e "CLANG_DIR:\n"
+          ls -l "$CLANG_DIR"
+          echo -e "GCC_64:\n"
+          ls -l "$GCC_64"
+          echo -e "GCC_32:\n"
+          ls -l "$GCC_32"
 
           # Print Clang version information
-          $TARGET_DIR/clang --version
+          "$CLANG_DIR/bin/clang" --version
         shell: bash
 
       - name: pull kernel source from selected branch
@@ -179,57 +159,59 @@ jobs:
         run: |
           cd ${{ env.kernel-dir }}
           mkdir -p -v out
-          export CLANG_PATH=$HOME/clang
-          export PATH=$CLANG_PATH/bin:$PATH
+          export CLANG_DIR=$HOME/clang
+          export PATH=$CLANG_DIR/bin:$PATH
+          GCC_64="$HOME/gcc-64"
+          GCC_32="$HOME/gcc-32"
           make -j$(nproc --all) \
-               CROSS_COMPILE=${CLANG_PATH}/bin/aarch64-linux-android- \
-               CROSS_COMPILE_COMPAT=${CLANG_PATH}/bin/arm-linux-gnueabi- \
+               CROSS_COMPILE=${GCC_64}/bin/aarch64-linux-android- \
+               COMPILE_ARM32=${GCC_32}/bin/arm-linux-androideabi- \
                CLANG_TRIPLE=aarch64-linux-gnu- \
-               CC=${CLANG_PATH}/bin/clang \
+               CC=${CLANG_DIR}/bin/clang \
                ARCH=${{ env.arch }} \
-               AR=${CLANG_PATH}/bin/llvm-ar \
-               NM=${CLANG_PATH}/bin/llvm-nm \
-               LLVM_AR=${CLANG_PATH}/bin/llvm-ar \
-               LLVM_NM=${CLANG_PATH}/bin/llvm-nm \
-               OBJCOPY=${CLANG_PATH}/bin/llvm-objcopy \
-               OBJDUMP=${CLANG_PATH}/bin/llvm-objdump \
-               STRIP=${CLANG_PATH}/bin/llvm-strip \
-               LD=${CLANG_PATH}/bin/ld.lld \
+               AR=${CLANG_DIR}/bin/llvm-ar \
+               NM=${CLANG_DIR}/bin/llvm-nm \
+               LLVM_AR=${CLANG_DIR}/bin/llvm-ar \
+               LLVM_NM=${CLANG_DIR}/bin/llvm-nm \
+               OBJCOPY=${CLANG_DIR}/bin/llvm-objcopy \
+               OBJDUMP=${CLANG_DIR}/bin/llvm-objdump \
+               STRIP=${CLANG_DIR}/bin/llvm-strip \
+               LD=${CLANG_DIR}/bin/ld.lld \
                O=out \
                ${{ env.config }}
           if [ ${{ env.ccache }} = true ]; then
               export USE_CCACHE=1
               make -j$(nproc --all) \
-                   CROSS_COMPILE=${CLANG_PATH}/bin/aarch64-linux-android- \
-                   CROSS_COMPILE_COMPAT=${CLANG_PATH}/bin/arm-linux-gnueabi- \
+                   CROSS_COMPILE=${GCC_64}/bin/aarch64-linux-android- \
+                   COMPILE_ARM32=${GCC_32}/bin/arm-linux-androideabi- \
                    CLANG_TRIPLE=aarch64-linux-gnu- \
-                   CC="ccache ${CLANG_PATH}/bin/clang" \
+                   CC="ccache ${CLANG_DIR}/bin/clang" \
                    ARCH=${{ env.arch }} \
-                   AR=${CLANG_PATH}/bin/llvm-ar \
-                   NM=${CLANG_PATH}/bin/llvm-nm \
-                   LLVM_AR=${CLANG_PATH}/bin/llvm-ar \
-                   LLVM_NM=${CLANG_PATH}/bin/llvm-nm \
-                   OBJCOPY=${CLANG_PATH}/bin/llvm-objcopy \
-                   OBJDUMP=${CLANG_PATH}/bin/llvm-objdump \
-                   STRIP=${CLANG_PATH}/bin/llvm-strip \
-                   LD=${CLANG_PATH}/bin/ld.lld \
+                   AR=${CLANG_DIR}/bin/llvm-ar \
+                   NM=${CLANG_DIR}/bin/llvm-nm \
+                   LLVM_AR=${CLANG_DIR}/bin/llvm-ar \
+                   LLVM_NM=${CLANG_DIR}/bin/llvm-nm \
+                   OBJCOPY=${CLANG_DIR}/bin/llvm-objcopy \
+                   OBJDUMP=${CLANG_DIR}/bin/llvm-objdump \
+                   STRIP=${CLANG_DIR}/bin/llvm-strip \
+                   LD=${CLANG_DIR}/bin/ld.lld \
                    O=out \
                    ${{ env.extra-cmd}}
           else
               make -j$(nproc --all) \
-                   CROSS_COMPILE=${CLANG_PATH}/bin/aarch64-linux-android- \
-                   CROSS_COMPILE_COMPAT=${CLANG_PATH}/bin/arm-linux-gnueabi- \
+                   CROSS_COMPILE=${GCC_64}/bin/aarch64-linux-android- \
+                   COMPILE_ARM32=${GCC_32}/bin/arm-linux-androideabi- \
                    CLANG_TRIPLE=aarch64-linux-gnu- \
-                   CC=${CLANG_PATH}/bin/clang \
+                   CC=${CLANG_DIR}/bin/clang \
                    ARCH=${{ env.arch }} \
-                   AR=${CLANG_PATH}/bin/llvm-ar \
-                   NM=${CLANG_PATH}/bin/llvm-nm \
-                   LLVM_AR=${CLANG_PATH}/bin/llvm-ar \
-                   LLVM_NM=${CLANG_PATH}/bin/llvm-nm \
-                   OBJCOPY=${CLANG_PATH}/bin/llvm-objcopy \
-                   OBJDUMP=${CLANG_PATH}/bin/llvm-objdump \
-                   STRIP=${CLANG_PATH}/bin/llvm-strip \
-                   LD=${CLANG_PATH}/bin/ld.lld \
+                   AR=${CLANG_DIR}/bin/llvm-ar \
+                   NM=${CLANG_DIR}/bin/llvm-nm \
+                   LLVM_AR=${CLANG_DIR}/bin/llvm-ar \
+                   LLVM_NM=${CLANG_DIR}/bin/llvm-nm \
+                   OBJCOPY=${CLANG_DIR}/bin/llvm-objcopy \
+                   OBJDUMP=${CLANG_DIR}/bin/llvm-objdump \
+                   STRIP=${CLANG_DIR}/bin/llvm-strip \
+                   LD=${CLANG_DIR}/bin/ld.lld \
                    O=out \
                    ${{ env.extra-cmd}}
           fi
