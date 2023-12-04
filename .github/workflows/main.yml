@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.repository.owner.id == github.event.sender.id
     env:
-      kernel-url: https://github.com/Sauvio/OPlus8T
+      kernel-url: https://github.com/Sauvio/OPlus8T_bluspark.git
       kernel-dir: kernel
-      branch: new-branch_r130
+      branch: master
       config: blu_spark_defconfig
       arch: arm64
       aosp-gcc: false
@@ -25,7 +25,7 @@ jobs:
       aosp-clang-version: r450784d
       python-27: true
       disable-lto: true
-      kprobes: true
+      kprobes: false
       overlayfs: true
       lxc: false
       lxc-patch: false
