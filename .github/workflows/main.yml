@@ -17,9 +17,9 @@ jobs:
       config: kebab_defconfig
       arch: arm64
       custom-clang: true
-      clang-url: https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/ee49fa39ce9be1c2a9d55bdc3a841e13e21af254/clang-r399163b.tar.gz
-      gcc-aarch64-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/refs/tags/android-11.0.0_r18/bin.tar.gz
-      gcc-arm-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-11.0.0_r18/bin.tar.gz
+      clang-url: https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/tags/android-12.0.0_r34/clang-r416183b.tar.gz
+      gcc-aarch64-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/5c970a204b44b1002fd9cbc954084c03e7bf9008.tar.gz
+      gcc-arm-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/326e6d4b31cc8c4e3adcf54672735d6f20a60503.tar.gz
       ksu: true
       ksu-version: v0.7.1
       anykernel3: true
