@@ -58,6 +58,8 @@ jobs:
           mkdir $HOME/clang -p -v
           OUTPUT_FILE="custom-clang.tar.gz"
           EXTRACTION_DIR="$HOME/clang"
+          TARGET_DIR="$EXTRACTION_DIR/bin"
+
           wget -q ${{ env.clang-url}} -O $OUTPUT_FILE
           if tar -tf $OUTPUT_FILE &> /dev/null; then
             tar -xf $OUTPUT_FILE -C "$EXTRACTION_DIR"
@@ -68,6 +70,12 @@ jobs:
           else
             echo "Unknown compression format or unsupported file"
           fi
+
+          if [ ! -d "$TARGET_DIR" ]; then
+            echo "Creating 'bin' directory..."
+            mkdir "$TARGET_DIR"
+          fi
+          mv "$EXTRACTION_DIR"/* "$TARGET_DIR"
 
           ls -l "$EXTRACTION_DIR"
           $EXTRACTION_DIR/bin/clang --version
