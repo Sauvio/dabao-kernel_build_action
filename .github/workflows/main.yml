@@ -55,10 +55,10 @@ jobs:
       - name: download custom clang
         if: env.custom-clang == 'true'
         run: |
-          mkdir $HOME/clang -p -v
           OUTPUT_FILE="custom-clang.tar.gz"
           EXTRACTION_DIR="$HOME/custom-clang"
           TARGET_DIR="$HOME/clang"
+          mkdir $EXTRACTION_DIR -p -v
           wget -q ${{ env.clang-url}} -O $OUTPUT_FILE
           if tar -tf $OUTPUT_FILE &> /dev/null; then
             tar -xf $OUTPUT_FILE -C "$EXTRACTION_DIR"
