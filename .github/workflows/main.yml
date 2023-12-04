@@ -67,9 +67,9 @@ jobs:
 
           # if gcc-aarch64-url && gcc-arm-url exists
           if [ -n "${{ env.gcc-aarch64-url  }}" ] && [ -n "${{ env.gcc-arm-url }}" ]; then
-            wget -q ${{ env.gcc-aarch64-url }} -O gcc-aarch64.tar.gz
+            wget -q ${{ evn.gcc-aarch64-url }} -O gcc-aarch64.tar.gz
             tar -C $HOME/gcc-64 -zxf gcc-aarch64.tar.gz
-            wget -q ${{ env.gcc-arm-url }} -O gcc-arm.tar.gz
+            wget -q ${{ evn.gcc-arm-url }} -O gcc-arm.tar.gz
             tar -C $HOME/gcc-32 -zxf gcc-arm.tar.gz
 
             if tar -tf gcc-aarch64.tar.gz &> /dev/null; then
