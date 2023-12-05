@@ -11,10 +11,11 @@ jobs:
     runs-on: ubuntu-20.04
     if: github.event.repository.owner.id == github.event.sender.id
     env:
-      kernel-url: https://github.com/Sauvio/OPlus8T_bluspark.git
+      kernel-url: https://github.com/Sauvio/libxzr-android_kernel_oneplus_sm8250/tree/oos11/final
       kernel-dir: kernel
       branch: master
-      config: blu_spark_defconfig
+      config: kebab_defconfig
+      custom-config: true
       arch: arm64
       custom-clang: true
       clang-url: https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android13-release/clang-r450784d.tar.gz
@@ -139,6 +140,35 @@ jobs:
         run: |
           cd ${{ env.kernel-dir }}
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s ${{ env.ksu-version }}
+        shell: bash
+
+      -name : custom kernel config
+        if: env.custom-config == 'true'
+        run: |
+          cd ${{ env.kernel-dir }}
+          config_file="arch/${env.arch}/configs/${env.config}"
+
+          add_config_if_not_exists() {
+           local config_item="$1"
+           grep -q "^${config_item}=" "${config_file}" || echo "${config_item}=y" >> "${config_file}"
+          }
+
+          replace_config_if_not_y() {
+           local config_item="$1"
+           grep -q "^${config_item}=y" "${config_file}" || sed -i "s/^${config_item}=.*$/${config_item}=y/" "${config_file}"
+          }
+
+          add_config_if_not_exists "CONFIG_MODULES"
+          add_config_if_not_exists "CONFIG_MODULE_FORCE_LOAD"
+          add_config_if_not_exists "CONFIG_SECURITY_SELINUX_DEVELOP"
+          add_config_if_not_exists "CONFIG_DM_VERITY"
+          add_config_if_not_exists "CONFIG_DM_VERITY_AVB"
+
+          replace_config_if_not_y "CONFIG_MODULES"
+          replace_config_if_not_y "CONFIG_MODULE_FORCE_LOAD"
+          replace_config_if_not_y "CONFIG_SECURITY_SELINUX_DEVELOP"
+          replace_config_if_not_y "CONFIG_DM_VERITY"
+          replace_config_if_not_y "CONFIG_DM_VERITY_AVB"
         shell: bash
 
       - name: disable lto
