@@ -142,7 +142,7 @@ jobs:
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s ${{ env.ksu-version }}
         shell: bash
 
-      -name : custom kernel config
+      - name : custom kernel config
         if: env.custom-config == 'true'
         run: |
           cd ${{ env.kernel-dir }}
