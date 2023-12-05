@@ -146,7 +146,7 @@ jobs:
         if: env.custom-config == 'true'
         run: |
           cd ${{ env.kernel-dir }}
-          config_file="arch/${env.arch}/configs/${env.config}"
+          config_file="arch/${{ env.arch }/configs/${{ env.config }}"
 
           add_config_if_not_exists() {
            local config_item="$1"
