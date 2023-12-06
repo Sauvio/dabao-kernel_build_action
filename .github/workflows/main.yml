@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-20.04
     if: github.event.repository.owner.id == github.event.sender.id
     env:
-      kernel-url: https://github.com/Sauvio/libxzr-android_kernel_oneplus_sm8250.git
+      kernel-url: https://github.com/zhlhlf/meteoric_kernel.git
       kernel-dir: kernel
-      branch: oos11-final-ksu
-      config: kebab_defconfig
+      branch: rvc
+      config: meteoric_defconfig
       custom-config: true
       arch: arm64
       custom-clang: true
