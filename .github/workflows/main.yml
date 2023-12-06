@@ -23,6 +23,7 @@ jobs:
       gcc-arm-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/4d16d93f49c2b5ecdd0f12c38d194835dd595603.tar.gz
       ksu: true
       ksu-version: v0.7.1
+      kprobes-config: true
       anykernel3: true
       python-27: true
       disable-lto: true
@@ -170,6 +171,29 @@ jobs:
           replace_config_if_not_y "CONFIG_DM_VERITY"
           replace_config_if_not_y "CONFIG_DM_VERITY_AVB"
         shell: bash
+
+      - name: enable kprobes config
+        if: env.kprobes-config == 'true'
+        shell: bash
+        run: |
+          cd ${{ env.kernel-dir }}
+          config_file="arch/${{ env.arch }}/configs/${{ env.config }}"
+
+          add_config_if_not_exists() {
+           local config_item="$1"
+           grep -q "^${config_item}=" "${config_file}" || echo "${config_item}=y" >> "${config_file}"
+          }
+
+          replace_config_if_not_y() {
+           local config_item="$1"
+           grep -q "^${config_item}=y" "${config_file}" || sed -i "s/^${config_item}=.*$/${config_item}=y/" "${config_file}"
+          }
+          add_config_if_not_exists "CONFIG_KPROBES"
+          add_config_if_not_exists "CONFIG_HAVE_KPROBES"
+          add_config_if_not_exists "CONFIG_KPROBE_EVENTS"
+          replace_config_if_not_y "CONFIG_KPROBES"
+          replace_config_if_not_y "CONFIG_HAVE_KPROBES"
+          replace_config_if_not_y "CONFIG_KPROBE_EVENTS"
 
       - name: disable lto
         if: env.disable-lto == 'true'
