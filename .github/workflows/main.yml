@@ -18,8 +18,8 @@ jobs:
       custom-config: true
       arch: arm64
       custom-clang: false
-      gcc-aarch64-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
-      gcc-arm-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/4d16d93f49c2b5ecdd0f12c38d194835dd595603.tar.gz
+      gcc-aarch64-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/heads/android11-release.tar.gz
+      gcc-arm-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/refs/heads/android11-release.tar.gz
       ksu: true
       ksu-version: v0.7.1
       anykernel3: true
@@ -300,8 +300,8 @@ jobs:
           GCC_32="$HOME/gcc-32"
           cd ${{ env.kernel-dir }}
           mkdir -p -v out
-          make -j$(nproc --all) CROSS_COMPILE=$GCC_64/bin/aarch64-linux-android- COMPILE_ARM32=$GCC_32/bin/arm-linux-androideabi- cc=gcc ARCH=${{ env.arch }} O=out ${{ env.config }}
-          make -j$(nproc --all) CROSS_COMPILE=$GCC_64/bin/aarch64-linux-android- COMPILE_ARM32=$GCC_32/bin/arm-linux-androideabi- cc=gcc ARCH=${{ env.arch }} O=out ${{ env.extra-cmd }}
+          make -j$(nproc --all) CROSS_COMPILE=$GCC_64/bin/aarch64-linux-android- COMPILE_ARM32=$GCC_32/bin/arm-linux-androideabi- ARCH=${{ env.arch }} O=out ${{ env.config }}
+          make -j$(nproc --all) CROSS_COMPILE=$GCC_64/bin/aarch64-linux-android- COMPILE_ARM32=$GCC_32/bin/arm-linux-androideabi- ARCH=${{ env.arch }} O=out ${{ env.extra-cmd }}
 
       - name: copy kernel
         if: env.anykernel3 == 'false'
