@@ -1,7 +1,7 @@
 name: Build Kernel
 on:
   push:
-    branches: OPlus8T-OOS11-horizon
+    branches: OPlus8T-OOS11-neutrino
 
   workflow_dispatch:
 
@@ -11,14 +11,14 @@ jobs:
     runs-on: ubuntu-20.04
     if: github.event.repository.owner.id == github.event.sender.id
     env:
-      kernel-url: https://github.com/Sauvio/libxzr-android_kernel_oneplus_sm8250.git
+      kernel-url: https://github.com/Sauvio/OPlus8t_neutrino.git
       kernel-dir: kernel
-      branch: oos11-final-ksu
-      config: kebab_defconfig
+      branch: ksu
+      config: neutrino_kebab_defconfig
       custom-config: true
       arch: arm64
       custom-clang: true
-      clang-url: https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android13-release/clang-r450784d.tar.gz
+      clang-url: https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.1/clang+llvm-13.0.1-aarch64-linux-gnu.tar.xz
       gcc-aarch64-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
       gcc-arm-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/4d16d93f49c2b5ecdd0f12c38d194835dd595603.tar.gz
       ksu: true
@@ -27,32 +27,32 @@ jobs:
       python-27: true
       disable-lto: true
     steps:
-      - id: cleanup
-        uses: rokibhasansagar/slimhub_actions@main
-
-      - name: install package
-        shell: bash
-        run: sudo apt install -y binutils binutils-aarch64-linux-gnu binutils-arm-linux-gnueabi git ccache automake flex lzop bison gperf build-essential zip curl gzip xz-utils zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python3
-
-      - name: use python 2.7
-        if: env.python-27 == 'true'
-        run: |
-          sudo apt install -y -q python2.7 python2.7-minimal
-          sudo rm /bin/python
-          sudo ln -s /bin/python2.7 /bin/python
-          sudo ln -s /bin/python2.7 /bin/python2
-        shell: bash
-
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Check Environment
-        run: |
-          echo "RUNNER_OS: $RUNNER_OS"
-          echo "RUNNER_TEMP: $RUNNER_TEMP"
-
-      - name: Check glibc Version
-        run: ldd --version
+      #      - id: cleanup
+      #        uses: rokibhasansagar/slimhub_actions@main
+      #
+      #      - name: install package
+      #        shell: bash
+      #        run: sudo apt install -y binutils binutils-aarch64-linux-gnu binutils-arm-linux-gnueabi git ccache automake flex lzop bison gperf build-essential zip curl gzip xz-utils zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python3
+      #
+      #      - name: use python 2.7
+      #        if: env.python-27 == 'true'
+      #        run: |
+      #          sudo apt install -y -q python2.7 python2.7-minimal
+      #          sudo rm /bin/python
+      #          sudo ln -s /bin/python2.7 /bin/python
+      #          sudo ln -s /bin/python2.7 /bin/python2
+      #        shell: bash
+      #
+      #      - name: Checkout Repository
+      #        uses: actions/checkout@v3
+      #
+      #      - name: Check Environment
+      #        run: |
+      #          echo "RUNNER_OS: $RUNNER_OS"
+      #          echo "RUNNER_TEMP: $RUNNER_TEMP"
+      #
+      #      - name: Check glibc Version
+      #        run: ldd --version
 
       - name: download custom clang
         if: env.custom-clang == 'true'
