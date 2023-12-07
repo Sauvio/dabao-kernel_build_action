@@ -27,32 +27,32 @@ jobs:
       python-27: true
       disable-lto: true
     steps:
-      #      - id: cleanup
-      #        uses: rokibhasansagar/slimhub_actions@main
-      #
-      #      - name: install package
-      #        shell: bash
-      #        run: sudo apt install -y binutils binutils-aarch64-linux-gnu binutils-arm-linux-gnueabi git ccache automake flex lzop bison gperf build-essential zip curl gzip xz-utils zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python3
-      #
-      #      - name: use python 2.7
-      #        if: env.python-27 == 'true'
-      #        run: |
-      #          sudo apt install -y -q python2.7 python2.7-minimal
-      #          sudo rm /bin/python
-      #          sudo ln -s /bin/python2.7 /bin/python
-      #          sudo ln -s /bin/python2.7 /bin/python2
-      #        shell: bash
-      #
-      #      - name: Checkout Repository
-      #        uses: actions/checkout@v3
-      #
-      #      - name: Check Environment
-      #        run: |
-      #          echo "RUNNER_OS: $RUNNER_OS"
-      #          echo "RUNNER_TEMP: $RUNNER_TEMP"
-      #
-      #      - name: Check glibc Version
-      #        run: ldd --version
+      - id: cleanup
+        uses: rokibhasansagar/slimhub_actions@main
+
+      - name: install package
+        shell: bash
+        run: sudo apt install -y binutils binutils-aarch64-linux-gnu binutils-arm-linux-gnueabi git ccache automake flex lzop bison gperf build-essential zip curl gzip xz-utils zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python3
+
+      - name: use python 2.7
+        if: env.python-27 == 'true'
+        run: |
+          sudo apt install -y -q python2.7 python2.7-minimal
+          sudo rm /bin/python
+          sudo ln -s /bin/python2.7 /bin/python
+          sudo ln -s /bin/python2.7 /bin/python2
+        shell: bash
+
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Check Environment
+        run: |
+          echo "RUNNER_OS: $RUNNER_OS"
+          echo "RUNNER_TEMP: $RUNNER_TEMP"
+
+      - name: Check glibc Version
+        run: ldd --version
 
       - name: download custom clang
         if: env.custom-clang == 'true'
@@ -89,7 +89,6 @@ jobs:
 
           # get clang
           wget -q "${{ env.clang-url}}" -O $OUTPUT_FILE
-          set -x
           if file $OUTPUT_FILE | grep -q "gzip compressed data"; then
             tar -xzf $OUTPUT_FILE -C "$CLANG_DIR"
           elif file $OUTPUT_FILE | grep -q "XZ compressed data"; then
