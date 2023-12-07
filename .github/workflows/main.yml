@@ -101,8 +101,8 @@ jobs:
             # Extract the subdirectory under the root
             SUBDIR=$(tar -tf "$OUTPUT_FILE" | grep -E '^clang[^/]+/$' | head -n 1)
             if [ -n "$SUBDIR" ]; then
-              # If the subdirectory exists, extract its content to $CLANG_DIR
-              tar -xf "$OUTPUT_FILE" -C "$CLANG_DIR" --strip-components=1 "$SUBDIR"
+              # If the subdirectory exists, move its content to $CLANG_DIR
+              tar -xf "$OUTPUT_FILE" -C "$CLANG_DIR" --strip-components=2 "$SUBDIR"/*
             else
               echo "Error: Subdirectory not found in the tar archive."
               exit 1
