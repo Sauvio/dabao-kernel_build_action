@@ -245,7 +245,7 @@ jobs:
           GCC_32="$HOME/gcc-32"
           make -j$(nproc --all) \
                CROSS_COMPILE=${GCC_64}/bin/aarch64-linux-android- \
-               COMPILE_ARM32=${GCC_32}/bin/arm-linux-androideabi- \
+               CROSS_COMPILE_COMPAT=${GCC_32}/bin/arm-linux-androideabi- \
                CLANG_TRIPLE=aarch64-linux-gnu- \
                CC=${CLANG_DIR}/bin/clang \
                ARCH=${{ env.arch }} \
@@ -263,7 +263,7 @@ jobs:
               export USE_CCACHE=1
               make -j$(nproc --all) \
                    CROSS_COMPILE=${GCC_64}/bin/aarch64-linux-android- \
-                   COMPILE_ARM32=${GCC_32}/bin/arm-linux-androideabi- \
+                   CROSS_COMPILE_COMPAT=${GCC_32}/bin/arm-linux-androideabi- \
                    CLANG_TRIPLE=aarch64-linux-gnu- \
                    CC="ccache ${CLANG_DIR}/bin/clang" \
                    ARCH=${{ env.arch }} \
@@ -280,7 +280,7 @@ jobs:
           else
               make -j$(nproc --all) \
                    CROSS_COMPILE=${GCC_64}/bin/aarch64-linux-android- \
-                   COMPILE_ARM32=${GCC_32}/bin/arm-linux-androideabi- \
+                   CROSS_COMPILE_COMPAT=${GCC_32}/bin/arm-linux-androideabi- \
                    CLANG_TRIPLE=aarch64-linux-gnu- \
                    CC=${CLANG_DIR}/bin/clang \
                    ARCH=${{ env.arch }} \
