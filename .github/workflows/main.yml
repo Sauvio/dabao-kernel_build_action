@@ -300,8 +300,8 @@ jobs:
           GCC_32="$HOME/gcc-32"
           cd ${{ env.kernel-dir }}
           mkdir -p -v out
-          make -j$(nproc --all) CROSS_COMPILE=$GCC_64/bin/aarch64-linux-android- COMPILE_ARM32=$GCC_32/bin/arm-linux-androideabi- ARCH=${{ env.arch }} O=out ${{ env.config }}
-          make -j$(nproc --all) CROSS_COMPILE=$GCC_64/bin/aarch64-linux-android- COMPILE_ARM32=$GCC_32/bin/arm-linux-androideabi- ARCH=${{ env.arch }} O=out ${{ env.extra-cmd }}
+          make -j$(nproc --all) CROSS_COMPILE=$GCC_32/bin/arm-linux-androideabi- ARCH=${{ env.arch }} O=out ${{ env.config }}
+          make -j$(nproc --all) CROSS_COMPILE=$GCC_32/bin/arm-linux-androideabi- ARCH=${{ env.arch }} O=out ${{ env.extra-cmd }}
 
       - name: copy kernel
         if: env.anykernel3 == 'false'
