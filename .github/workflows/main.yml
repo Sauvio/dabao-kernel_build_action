@@ -17,14 +17,16 @@ jobs:
       config: neutrino_kebab_defconfig
       custom-config: true
       arch: arm64
-      custom-clang: false
-      gcc-aarch64-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/heads/android10-release.tar.gz
-      gcc-arm-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/refs/heads/android10-release.tar.gz
+      custom-clang: true
+      clang-url: https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android13-release/clang-r450784d.tar.gz
+      gcc-aarch64-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
+      gcc-arm-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/4d16d93f49c2b5ecdd0f12c38d194835dd595603.tar.gz
       ksu: true
       ksu-version: v0.7.1
       anykernel3: true
       python-27: true
-      disable-lto: true
+      disable-lto-clang: true
+      disable-lto-gcc: true
     steps:
       - id: cleanup
         uses: rokibhasansagar/slimhub_actions@main
@@ -210,17 +212,26 @@ jobs:
           replace_config_if_not_y "CONFIG_DM_VERITY_AVB"
         shell: bash
 
-      - name: disable lto
-        if: env.disable-lto == 'true'
+      - name: disable lto clang
+        if: env.disable-lto-clang == 'true'
         shell: bash
         run: |
           cd ${{ env.kernel-dir }}
           if grep -q "LTO" "arch/${{ env.arch }}/configs/${{ env.config }}"
           then
-               sed -i 's/CONFIG_LTO=y/CONFIG_LTO=n/' arch/${{ env.arch }}/configs/${{ env.config }}
-               sed -i 's/CONFIG_LTO_CLANG=y/CONFIG_LTO_CLANG=n/' arch/${{ env.arch }}/configs/${{ env.config }}
-               sed -i 's/CONFIG_THINLTO=y/CONFIG_THINLTO=n/' arch/${{ env.arch }}/configs/${{ env.config }}
-               echo "CONFIG_LTO_NONE=y" >> arch/${{ env.arch }}/configs/${{ env.config }}
+            sed -i 's/CONFIG_LTO=y/CONFIG_LTO=n/' arch/${{ env.arch }}/configs/${{ env.config }}
+            sed -i 's/CONFIG_LTO_CLANG=y/CONFIG_LTO_CLANG=n/' arch/${{ env.arch }}/configs/${{ env.config }}
+            sed -i 's/CONFIG_THINLTO=y/CONFIG_THINLTO=n/' arch/${{ env.arch }}/configs/${{ env.config }}
+            echo "CONFIG_LTO_NONE=y" >> arch/${{ env.arch }}/configs/${{ env.config }}
+          fi
+
+      - name: disable lto gcc
+        if: env.disable-lto-gcc == 'true'
+        shell: bash
+        run: |
+          cd ${{ env.kernel-dir }}
+          if grep -q "CONFIG_LTO_GCC" "arch/${{ env.arch }}/configs/${{ env.config }}"; then
+            sed -i '/CONFIG_LTO_GCC/d' arch/${{ env.arch }}/configs/${{ env.config }}
           fi
 
       - name: build kernel with clang
