@@ -71,9 +71,7 @@ jobs:
             wget -q "${{ env.gcc-aarch64-url }}" -O gcc-aarch64.tar.gz
             wget -q "${{ env.gcc-arm-url }}" -O gcc-arm.tar.gz
 
-            if tar -tf gcc-aarch64.tar.gz &> /dev/null; then
-              tar -xf gcc-aarch64.tar.gz -C "$GCC_64"
-            elif file gcc-aarch64.tar.gz | grep -q "gzip compressed data"; then
+            if file gcc-aarch64.tar.gz | grep -q "gzip compressed data"; then
               tar -xzf gcc-aarch64.tar.gz -C "$GCC_64"
             elif file gcc-aarch64.tar.gz | grep -q "XZ compressed data"; then
               tar -xf gcc-aarch64.tar.gz -C "$GCC_64"
@@ -81,9 +79,7 @@ jobs:
               echo "Unknown compression format or unsupported file"
             fi
 
-            if tar -tf gcc-arm.tar.gz &> /dev/null; then
-              tar -xf gcc-arm.tar.gz -C "$GCC_32"
-            elif file gcc-arm.tar.gz | grep -q "gzip compressed data"; then
+            if file gcc-arm.tar.gz | grep -q "gzip compressed data"; then
               tar -xzf gcc-arm.tar.gz -C "$GCC_32"
             elif file gcc-arm.tar.gz | grep -q "XZ compressed data"; then
               tar -xf gcc-arm.tar.gz -C "$GCC_32"
@@ -94,12 +90,17 @@ jobs:
 
           # get clang
           wget -q "${{ env.clang-url}}" -O $OUTPUT_FILE
-          if tar -tf $OUTPUT_FILE &> /dev/null; then
-            tar -xf $OUTPUT_FILE -C "$CLANG_DIR"
-          elif file $OUTPUT_FILE | grep -q "gzip compressed data"; then
+          if file $OUTPUT_FILE | grep -q "gzip compressed data"; then
             tar -xzf $OUTPUT_FILE -C "$CLANG_DIR"
           elif file $OUTPUT_FILE | grep -q "XZ compressed data"; then
-            tar -xf $OUTPUT_FILE -C "$CLANG_DIR"
+            # Extract the subdirectory under the root
+            SUBDIR=$(tar -tf "$OUTPUT_FILE" | grep -E '^clang[^/]+/$' | head -n 1)
+            if [ -n "$SUBDIR" ]; then
+              # If the subdirectory exists, move its content to $CLANG_DIR
+              tar -xf "$OUTPUT_FILE" -C "$CLANG_DIR" --strip-components=1 "$SUBDIR"
+            else
+              tar -xf "$OUTPUT_FILE" -C "$CLANG_DIR"
+            fi
           else
             echo "Unknown compression format or unsupported file"
           fi
