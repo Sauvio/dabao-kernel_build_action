@@ -42,6 +42,13 @@ jobs:
           sudo ln -s /bin/python2.7 /bin/python2
         shell: bash
 
+      - name: install gcc
+        shell: bash
+        run: |
+          sudo apt install -y -q gcc-7
+          sudo rm /bin/gcc
+          sudo ln -s /usr/bin/gcc-7 /bin/gcc
+
       - name: Checkout Repository
         uses: actions/checkout@v3
 
@@ -293,8 +300,8 @@ jobs:
           GCC_32="$HOME/gcc-32"
           cd ${{ env.kernel-dir }}
           mkdir -p -v out
-          make -j$(nproc --all) CROSS_COMPILE=$GCC_64/bin/aarch64-linux-android- COMPILE_ARM32=$GCC_32/bin/arm-linux-androideabi- ARCH=${{ env.arch }} O=out ${{ env.config }}
-          make -j$(nproc --all) CROSS_COMPILE=$GCC_64/bin/aarch64-linux-android- COMPILE_ARM32=$GCC_32/bin/arm-linux-androideabi- ARCH=${{ env.arch }} O=out ${{ env.extra-cmd }}
+          make -j$(nproc --all) CROSS_COMPILE=$GCC_64/bin/aarch64-linux-android- COMPILE_ARM32=$GCC_32/bin/arm-linux-androideabi- cc=gcc ARCH=${{ env.arch }} O=out ${{ env.config }}
+          make -j$(nproc --all) CROSS_COMPILE=$GCC_64/bin/aarch64-linux-android- COMPILE_ARM32=$GCC_32/bin/arm-linux-androideabi- cc=gcc ARCH=${{ env.arch }} O=out ${{ env.extra-cmd }}
 
       - name: copy kernel
         if: env.anykernel3 == 'false'
