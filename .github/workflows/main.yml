@@ -14,7 +14,7 @@ jobs:
       kernel-url: https://github.com/Sauvio/OPlus8t_neutrino.git
       kernel-dir: kernel
       branch: ksu
-      config: neutrino_kebab_defconfig
+      config: neutrino_llvm_defconfig
       custom-config: true
       arch: arm64
       custom-clang: true
