@@ -235,7 +235,7 @@ runs:
              test -d kernel/${{ inputs.vendor-dir }}/vendor && cp -rv kernel/${{ inputs.vendor-dir }}/vendor ./
              echo "::endgroup::"
          fi
-         
+
          if [ ${{ inputs.ksu }} = true ]; then
             echo "::group:: Initializing KernelSU"
             cd kernel/${{ inputs.kernel-dir }}
