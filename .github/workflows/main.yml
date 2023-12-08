@@ -67,7 +67,7 @@ jobs:
           mkdir "$GCC_32" -p -v
 
           # if gcc-aarch64-url && gcc-arm-url exists
-          if [[ -n ${{ env.gcc-aarch64-url }} && ${{ env.gcc-aarch64-url }} != "" && -n ${{ env.gcc-arm-url }} && ${{ env.gcc-arm-url }} != "" ]]; then
+          if [[ -n "${{ env.gcc-aarch64-url }}" && -n "${{ env.gcc-arm-url }}" ]]; then
             wget -q "${{ env.gcc-aarch64-url }}" -O gcc-aarch64.tar.gz
             wget -q "${{ env.gcc-arm-url }}" -O gcc-arm.tar.gz
 
