@@ -344,6 +344,6 @@ jobs:
       - id: uploadb
         if: env.built-target == 'true'
         uses: actions/upload-artifact@v3
-          with:
-            name: built-target-files
-            path: built-target/built-target-files.tar.xz
+        with:
+          name: built-target-files
+          path: built-target/built-target-files.tar.xz
