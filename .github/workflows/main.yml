@@ -194,6 +194,11 @@ jobs:
            grep -q "^${config_item}=" "${config_file}" || echo "${config_item}=y" >> "${config_file}"
           }
 
+          remove_config_if_exists() {
+           local config_item="$1"
+           grep -q "^${config_item}=" "${config_file}" && sed -i "/^${config_item}=.*$/d" "${config_file}"
+          }
+
           replace_config_if_not_y() {
            local config_item="$1"
            grep -q "^${config_item}=y" "${config_file}" || sed -i "s/^${config_item}=.*$/${config_item}=y/" "${config_file}"
@@ -204,6 +209,8 @@ jobs:
           add_config_if_not_exists "CONFIG_SECURITY_SELINUX_DEVELOP"
           add_config_if_not_exists "CONFIG_DM_VERITY"
           add_config_if_not_exists "CONFIG_DM_VERITY_AVB"
+
+          remove_config_if_exists "CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE"
 
           replace_config_if_not_y "CONFIG_MODULES"
           replace_config_if_not_y "CONFIG_MODULE_FORCE_LOAD"
