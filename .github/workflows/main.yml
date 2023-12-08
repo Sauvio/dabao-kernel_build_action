@@ -166,7 +166,9 @@ jobs:
           add_config_if_not_exists "CONFIG_SECURITY_SELINUX_DEVELOP"
           add_config_if_not_exists "CONFIG_DM_VERITY"
           add_config_if_not_exists "CONFIG_DM_VERITY_AVB"
+
           add_config_if_not_exists "CONFIG_BUILD_ARM64_KERNEL_COMPRESSION_GZIP"
+          add_config_if_not_exists "CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE"
 
           replace_config_if_not_y "CONFIG_MODULES"
           replace_config_if_not_y "CONFIG_MODULE_FORCE_LOAD"
@@ -194,8 +196,6 @@ jobs:
           add_config_if_not_exists "CONFIG_KPROBES"
           add_config_if_not_exists "CONFIG_HAVE_KPROBES"
           add_config_if_not_exists "CONFIG_KPROBE_EVENTS"
-          add_config_if_not_exists "CONFIG_BUILD_ARM64_KERNEL_COMPRESSION_GZIP"
-          add_config_if_not_exists "CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE"
           replace_config_if_not_y "CONFIG_KPROBES"
           replace_config_if_not_y "CONFIG_HAVE_KPROBES"
           replace_config_if_not_y "CONFIG_KPROBE_EVENTS"
@@ -224,7 +224,7 @@ jobs:
           GCC_32="$HOME/gcc-32"
           make -j$(nproc --all) \
                CROSS_COMPILE=${GCC_64}/bin/aarch64-linux-android- \
-               COMPILE_ARM32=${GCC_32}/bin/arm-linux-androideabi- \
+               CROSS_COMPILE_COMPAT=${GCC_32}/bin/arm-linux-androideabi- \
                CLANG_TRIPLE=aarch64-linux-gnu- \
                CC=${CLANG_DIR}/bin/clang \
                ARCH=${{ env.arch }} \
@@ -242,7 +242,7 @@ jobs:
               export USE_CCACHE=1
               make -j$(nproc --all) \
                    CROSS_COMPILE=${GCC_64}/bin/aarch64-linux-android- \
-                   COMPILE_ARM32=${GCC_32}/bin/arm-linux-androideabi- \
+                   CROSS_COMPILE_COMPAT=${GCC_32}/bin/arm-linux-androideabi- \
                    CLANG_TRIPLE=aarch64-linux-gnu- \
                    CC="ccache ${CLANG_DIR}/bin/clang" \
                    ARCH=${{ env.arch }} \
@@ -259,7 +259,7 @@ jobs:
           else
               make -j$(nproc --all) \
                    CROSS_COMPILE=${GCC_64}/bin/aarch64-linux-android- \
-                   COMPILE_ARM32=${GCC_32}/bin/arm-linux-androideabi- \
+                   CROSS_COMPILE_COMPAT=${GCC_32}/bin/arm-linux-androideabi- \
                    CLANG_TRIPLE=aarch64-linux-gnu- \
                    CC=${CLANG_DIR}/bin/clang \
                    ARCH=${{ env.arch }} \
@@ -318,6 +318,9 @@ jobs:
           else
              cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image AnyKernel3 -rv
           fi
+
+          test -f ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dtbo.img && cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dtbo.img AnyKernel3/
+          find ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom/ -name '*.dtb' -exec cat {} + > AnyKernel3/dtb
 
           : "
           test -f ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dtbo.img && cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dtbo.img AnyKernel3/
