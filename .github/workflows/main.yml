@@ -172,7 +172,7 @@ jobs:
           replace_config_if_not_y "CONFIG_DM_VERITY"
           replace_config_if_not_y "CONFIG_DM_VERITY_AVB"
 
-          sed -i "s/^CONFIG_LOCALVERSION=.*$/CONFIG_LOCALVERSION=\"blu_spark\"/" "${config_file}"
+          sed -i "s/^CONFIG_LOCALVERSION=.*$/CONFIG_LOCALVERSION=\"-Blu_spark\"/" "${config_file}"
         shell: bash
 
       - name: disable lto
