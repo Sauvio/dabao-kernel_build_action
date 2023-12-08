@@ -342,8 +342,8 @@ jobs:
           path: AnyKernel3/*
 
       - id: uploadb
-          if: env.built-target == 'true'
-          uses: actions/upload-artifact@v3
+        if: env.built-target == 'true'
+        uses: actions/upload-artifact@v3
           with:
             name: built-target-files
             path: built-target/built-target-files.tar.xz
