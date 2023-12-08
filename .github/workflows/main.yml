@@ -165,6 +165,7 @@ jobs:
           add_config_if_not_exists "CONFIG_SECURITY_SELINUX_DEVELOP"
           add_config_if_not_exists "CONFIG_DM_VERITY"
           add_config_if_not_exists "CONFIG_DM_VERITY_AVB"
+          add_config_if_not_exists "CONFIG_BUILD_ARM64_KERNEL_COMPRESSION_GZIP"
 
           replace_config_if_not_y "CONFIG_MODULES"
           replace_config_if_not_y "CONFIG_MODULE_FORCE_LOAD"
