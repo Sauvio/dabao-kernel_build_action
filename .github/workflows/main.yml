@@ -27,6 +27,7 @@ jobs:
       python-27: true
       disable-lto-clang: true
       disable-lto-gcc: true
+      built-target: true
     steps:
       - id: cleanup
         uses: rokibhasansagar/slimhub_actions@main
@@ -210,8 +211,6 @@ jobs:
           add_config_if_not_exists "CONFIG_DM_VERITY"
           add_config_if_not_exists "CONFIG_DM_VERITY_AVB"
 
-          remove_config_if_exists "CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE"
-
           replace_config_if_not_y "CONFIG_MODULES"
           replace_config_if_not_y "CONFIG_MODULE_FORCE_LOAD"
           replace_config_if_not_y "CONFIG_SECURITY_SELINUX_DEVELOP"
@@ -327,6 +326,21 @@ jobs:
              cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image build -rv
           fi
 
+      - name: copy built target
+        if: env.built-target == 'true'
+        shell: bash
+        run: |
+          mkdir -p -v built-target/files
+          find ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot -type f -name "Image.*-dtb" -exec cp {} built-target/files -rv \;
+          if [ -f ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image.* ]; then
+             cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image.* built-target/files -rv
+          else
+             cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image built-target/files -rv
+          fi
+          find ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot -type f -name "*.img" -exec cp {} built-target/files -rv \;
+          find ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom -type f -name "*.dtb" -exec cp {} built-target/files -rv \;
+          tar -cJf built-target/built-target-files.tar.xz -C built-target files
+
       - name: package with anykernel3
         if: env.anykernel3 == 'true'
         run: |
@@ -344,8 +358,8 @@ jobs:
           fi
 
           test -f ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dtbo.img && cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dtbo.img AnyKernel3/
-          test -f ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom/kona-v2.1.dtb && cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom/kona-v2.1.dtb AnyKernel3/dtb
-          test -f ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom/instantnoodle-t0.dtb && cp ${{ env.kernel-dir }} /out/arch/${{ env.arch }}/boot/dts/vendor/qcom/instantnoodle-t0.dtb AnyKernel3/dtb
+          # test -f ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom/kona-v2.1.dtb && cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom/kona-v2.1.dtb AnyKernel3/dtb
+          find ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom/ -name '*.dtb' -exec cat {} + > AnyKernel3/dtb
           rm -rf AnyKernel3/.git* AnyKernel3/README.md
         shell: bash
 
@@ -362,3 +376,10 @@ jobs:
         with:
           name: AnyKernel3-flasher
           path: AnyKernel3/*
+
+      - id: uploadb
+        if: env.built-target == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: built-target
+          path: built-target/built-target-files.tar.xz
