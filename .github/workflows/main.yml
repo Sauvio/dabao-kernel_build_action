@@ -18,8 +18,8 @@ jobs:
       custom-config: true
       arch: arm64
       custom-clang: true
-      clang-url: https://storage.xzr.moe/horizon-clang/Horizon-Clang-16.0.6.tar.xz
-      custom-gcc: true
+      clang-url: https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
+      custom-gcc: false
       gcc-aarch64-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
       gcc-arm-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/4d16d93f49c2b5ecdd0f12c38d194835dd595603.tar.gz
       ksu: true
@@ -56,37 +56,37 @@ jobs:
 #      - name: Check glibc Version
 #        run: ldd --version
 
-#      - name: download custom clang
-#        if: env.custom-clang == 'true'
-#        run: |
-#          OUTPUT_FILE="custom-clang.tar.gz"
-#          CLANG_DIR="$HOME/clang"
-#          mkdir "$CLANG_DIR" -p -v
-#
-#          # get clang
-#          wget -q "${{ env.clang-url}}" -O $OUTPUT_FILE
-#          if file $OUTPUT_FILE | grep -q "gzip compressed data"; then
-#            tar -xzf $OUTPUT_FILE -C "$CLANG_DIR"
-#          elif file $OUTPUT_FILE | grep -q "XZ compressed data"; then
-#            # Extract the subdirectory under the root
-#            SUBDIR=$(tar -tf "$OUTPUT_FILE" | grep -E '^clang[^/]+/$' | head -n 1)
-#            if [ -n "$SUBDIR" ]; then
-#              # If the subdirectory exists, move its content to $CLANG_DIR
-#              tar -xf "$OUTPUT_FILE" -C "$CLANG_DIR" --strip-components=1 "$SUBDIR"
-#            else
-#              tar -xf "$OUTPUT_FILE" -C "$CLANG_DIR"
-#            fi
-#          else
-#            echo "Unknown compression format or unsupported file"
-#          fi
-#
-#          # Print the content of directories to verify
-#          echo -e "CLANG_DIR:\n"
-#          ls -l "$CLANG_DIR"
-#
-#          # Print Clang version information
-#          "$CLANG_DIR/bin/clang" --version
-#        shell: bash
+      - name: download custom clang
+        if: env.custom-clang == 'true'
+        run: |
+          OUTPUT_FILE="custom-clang.tar.gz"
+          CLANG_DIR="$HOME/clang"
+          mkdir "$CLANG_DIR" -p -v
+
+          # get clang
+          wget -q "${{ env.clang-url}}" -O $OUTPUT_FILE
+          if file $OUTPUT_FILE | grep -q "gzip compressed data"; then
+            tar -xzf $OUTPUT_FILE -C "$CLANG_DIR"
+          elif file $OUTPUT_FILE | grep -q "XZ compressed data"; then
+            # Extract the subdirectory under the root
+            SUBDIR=$(tar -tf "$OUTPUT_FILE" | grep -E '^clang[^/]+/$' | head -n 1)
+            if [ -n "$SUBDIR" ]; then
+              # If the subdirectory exists, move its content to $CLANG_DIR
+              tar -xf "$OUTPUT_FILE" -C "$CLANG_DIR" --strip-components=1 "$SUBDIR"
+            else
+              tar -xf "$OUTPUT_FILE" -C "$CLANG_DIR"
+            fi
+          else
+            echo "Unknown compression format or unsupported file"
+          fi
+
+          # Print the content of directories to verify
+          echo -e "CLANG_DIR:\n"
+          ls -l "$CLANG_DIR"
+
+          # Print Clang version information
+          "$CLANG_DIR/bin/clang" --version
+        shell: bash
 
       - name: download custom gcc
         if: env.custom-gcc == 'true'
