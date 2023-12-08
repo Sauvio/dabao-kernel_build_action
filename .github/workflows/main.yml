@@ -270,12 +270,12 @@ jobs:
         run: |
           mkdir -p -v built-target/files
           find ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot -type f -name "Image.*-dtb" -exec cp {} built-target/files -rv \;
-          cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image.*-dtb built-target/files -rv
           if [ -f ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image.* ]; then
              cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image.* built-target/files -rv
           else
              cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image built-target/files -rv
           fi
+          find ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot -type f -name "*.img" -exec cp {} built-target/files -rv \;
           find ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom -type f -name "*.dtb" -exec cp {} built-target/files -rv \;
           tar -cJf built-target/built-target-files.tar.xz -C built-target files
 
