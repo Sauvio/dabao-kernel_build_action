@@ -18,10 +18,9 @@ jobs:
       custom-config: true
       arch: arm64
       custom-clang: true
-      clang-url: https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
-      custom-gcc: false
-      gcc-aarch64-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
-      gcc-arm-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/4d16d93f49c2b5ecdd0f12c38d194835dd595603.tar.gz
+      clang-url: https://github.com/ZyCromerZ/Clang/releases/download/16.0.6-20231003-release/Clang-16.0.6-20231003.tar.gz
+      gcc-aarch64-url: ""
+      gcc-arm-url: ""
       ksu: true
       ksu-version: v0.7.1
       anykernel3: true
@@ -61,7 +60,33 @@ jobs:
         run: |
           OUTPUT_FILE="custom-clang.tar.gz"
           CLANG_DIR="$HOME/clang"
+          GCC_64="$HOME/gcc-64"
+          GCC_32="$HOME/gcc-32"
           mkdir "$CLANG_DIR" -p -v
+          mkdir "$GCC_64" -p -v
+          mkdir "$GCC_32" -p -v
+
+          # if gcc-aarch64-url && gcc-arm-url exists
+          if [ -n "${{ env.gcc-aarch64-url  }}" ] && [ -n "${{ env.gcc-arm-url }}" ]; then
+            wget -q "${{ env.gcc-aarch64-url }}" -O gcc-aarch64.tar.gz
+            wget -q "${{ env.gcc-arm-url }}" -O gcc-arm.tar.gz
+
+            if file gcc-aarch64.tar.gz | grep -q "gzip compressed data"; then
+              tar -xzf gcc-aarch64.tar.gz -C "$GCC_64"
+            elif file gcc-aarch64.tar.gz | grep -q "XZ compressed data"; then
+              tar -xf gcc-aarch64.tar.gz -C "$GCC_64"
+            else
+              echo "Unknown compression format or unsupported file"
+            fi
+
+            if file gcc-arm.tar.gz | grep -q "gzip compressed data"; then
+              tar -xzf gcc-arm.tar.gz -C "$GCC_32"
+            elif file gcc-arm.tar.gz | grep -q "XZ compressed data"; then
+              tar -xf gcc-arm.tar.gz -C "$GCC_32"
+            else
+              echo "Unknown compression format or unsupported file"
+            fi
+          fi
 
           # get clang
           wget -q "${{ env.clang-url}}" -O $OUTPUT_FILE
@@ -83,42 +108,13 @@ jobs:
           # Print the content of directories to verify
           echo -e "CLANG_DIR:\n"
           ls -l "$CLANG_DIR"
-
-          # Print Clang version information
-          "$CLANG_DIR/bin/clang" --version
-        shell: bash
-
-      - name: download custom gcc
-        if: env.custom-gcc == 'true'
-        run: |
-          GCC_64="$HOME/gcc-64"
-          GCC_32="$HOME/gcc-32"
-          mkdir "$GCC_64" -p -v
-          mkdir "$GCC_32" -p -v
-          wget -q "${{ env.gcc-aarch64-url }}" -O gcc-aarch64.tar.gz
-          wget -q "${{ env.gcc-arm-url }}" -O gcc-arm.tar.gz
-
-          if file gcc-aarch64.tar.gz | grep -q "gzip compressed data"; then
-            tar -xzf gcc-aarch64.tar.gz -C "$GCC_64"
-          elif file gcc-aarch64.tar.gz | grep -q "XZ compressed data"; then
-            tar -xf gcc-aarch64.tar.gz -C "$GCC_64"
-          else
-            echo "Unknown compression format or unsupported file"
-          fi
-
-          if file gcc-arm.tar.gz | grep -q "gzip compressed data"; then
-            tar -xzf gcc-arm.tar.gz -C "$GCC_32"
-          elif file gcc-arm.tar.gz | grep -q "XZ compressed data"; then
-            tar -xf gcc-arm.tar.gz -C "$GCC_32"
-          else
-            echo "Unknown compression format or unsupported file"
-          fi
-
-          # Print the content of directories to verify
           echo -e "GCC_64:\n"
           ls -l "$GCC_64"
           echo -e "GCC_32:\n"
           ls -l "$GCC_32"
+
+          # Print Clang version information
+          "$CLANG_DIR/bin/clang" --version
         shell: bash
 
       - name: pull kernel source from selected branch
