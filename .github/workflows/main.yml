@@ -290,18 +290,18 @@ jobs:
           fi
 
       - name: copy built target
-          if: env.built-target == 'true'
-          shell: bash
-          run: |
-            mkdir -p -v built-target/files
-            cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image.*-dtb built-target/files -rv
-            if [ -f ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image.* ]; then
-               cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image.* built-target/files -rv
-            else
-               cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image built-target/files -rv
-            fi
-            cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom/*.dtb built-target/files -rv
-            tar -cJf built-target/built-target-files.tar.xz -C built-target files
+        if: env.built-target == 'true'
+        shell: bash
+        run: |
+          mkdir -p -v built-target/files
+          cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image.*-dtb built-target/files -rv
+          if [ -f ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image.* ]; then
+             cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image.* built-target/files -rv
+          else
+             cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image built-target/files -rv
+          fi
+          cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom/*.dtb built-target/files -rv
+          tar -cJf built-target/built-target-files.tar.xz -C built-target files
 
       - name: package with anykernel3
         if: env.anykernel3 == 'true'
