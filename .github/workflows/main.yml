@@ -295,9 +295,9 @@ jobs:
              cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/Image AnyKernel3 -rv
           fi
 
-          test -f ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dtbo.img && cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dtbo.img AnyKernel3/
+          # test -f ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dtbo.img && cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dtbo.img AnyKernel3/
           # test -f ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom/kona-v2.1.dtb && cp ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom/kona-v2.1.dtb AnyKernel3/dtb
-          find ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom/ -name '*.dtb' -exec cat {} + > AnyKernel3/dtb
+          # find ${{ env.kernel-dir }}/out/arch/${{ env.arch }}/boot/dts/vendor/qcom/ -name '*.dtb' -exec cat {} + > AnyKernel3/dtb
           rm -rf AnyKernel3/.git* AnyKernel3/README.md
         shell: bash
 
