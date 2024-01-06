@@ -22,7 +22,7 @@ jobs:
       gcc-aarch64-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
       gcc-arm-url: https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/4d16d93f49c2b5ecdd0f12c38d194835dd595603.tar.gz
       ksu: true
-      ksu-version: v0.7.1
+      ksu-version: v0.7.2
       anykernel3: true
       python-27: true
       disable-lto-clang: true
